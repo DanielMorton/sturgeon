@@ -3,15 +3,15 @@ use crate::utils::DNA;
 use std::error::Error;
 use crate::utils::hamming::min_hamming_distance;
 
-pub fn median_string(dna: &[String], k: usize) -> Result<String, Box<dyn Error>> {
+pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<dyn Error>> {
     // Initialize with k consecutive 'A's
-    let initial_pattern = "A".repeat(k);
-    let mut kmers = neighbors(&initial_pattern, k, &DNA)?
+    let initial_pattern = "A".repeat(kmer_length);
+    let mut kmers = neighbors(&initial_pattern, kmer_length, &DNA)?
         .into_iter()
         .collect::<Vec<_>>();
     kmers.sort();
 
-    let mut min_distance = k * dna.len();
+    let mut min_distance = kmer_length * dna.len();
     let mut median = kmers[0].clone();
 
     for kmer in &kmers {

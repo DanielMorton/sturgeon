@@ -4,20 +4,20 @@ use std::error::Error;
 fn find_clumps(
     genome: &str,
     window: usize,
-    k: usize,
+    kmer_length: usize,
     min_freq: usize,
 ) -> Result<Vec<String>, Box<dyn Error>> {
-    if genome.len() < window || window < k {
+    if genome.len() < window || window < kmer_length {
         return Ok(Vec::new());
     }
 
     // Initialize frequency map and patterns set for first window
-    let mut word_freq = freq_map(&genome[..window], k);
-    let mut patterns = frequent_word_set(&genome[..window], &word_freq, k, min_freq);
+    let mut word_freq = freq_map(&genome[..window], kmer_length);
+    let mut patterns = frequent_word_set(&genome[..window], &word_freq, kmer_length, min_freq);
     // Slide window over genome
     for i in 0..(genome.len() - window) {
         // Remove leftmost k-mer frequency
-        let left_kmer = &genome[i..i + k];
+        let left_kmer = &genome[i..i + kmer_length];
         if let Some(&count) = word_freq.get(left_kmer) {
             if count == 1 {
                 word_freq.remove(left_kmer);
@@ -27,7 +27,7 @@ fn find_clumps(
         }
 
         // Add rightmost k-mer frequency
-        let right_kmer = genome[(i + window - k + 1)..(i + window + 1)].to_owned();
+        let right_kmer = genome[(i + window - kmer_length + 1)..(i + window + 1)].to_owned();
         let freq = word_freq.entry(right_kmer.clone()).or_insert(0);
         *freq += 1;
 

@@ -5,13 +5,13 @@ use std::error::Error;
 
 fn make_pattern_freq(
     text: &str,
-    k: usize,
+    kmer_length: usize,
     max_diff: usize,
     char_set: &[char],
     pattern_freq: &mut HashMap<String, usize>,
 ) -> Result<(), Box<dyn Error>> {
-    for i in 0..=(text.len() - k) {
-        for n in neighbors(&text[i..i + k], max_diff, char_set)? {
+    for i in 0..=(text.len() - kmer_length) {
+        for n in neighbors(&text[i..i + kmer_length], max_diff, char_set)? {
             *pattern_freq.entry(n).or_insert(0) += 1;
         }
     }

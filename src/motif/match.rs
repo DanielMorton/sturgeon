@@ -33,10 +33,7 @@ fn approximate_pattern_count(
     pattern: &str,
     max_diff: usize,
 ) -> Result<usize, Box<dyn Error>> {
-    match approximate_pattern_matching(text, pattern, max_diff) {
-        Ok(p) => Ok(p.len()),
-        Err(e) => Err(e),
-    }
+    Ok(approximate_pattern_matching(text, pattern, max_diff)?.len())
 }
 
 mod tests {

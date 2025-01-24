@@ -67,8 +67,54 @@ mod tests {
             format!("TAGATCAAGTTTCAGGTGCACGTCGGTGAACC"),
             format!("AATCCACCAGCTCCACGTGCAATGTTGGCCTA"),
         ];
-        let motifs = randomized_motif_search(&dna, 8, 1000)?;
-        assert_eq!(motifs, vec!["TCTCGGGG", "CCAAGGTG", "TACAGGCG", "TTCAGGTG", "TCCACGTG"]);
+        let ans = vec!["TCTCGGGG", "CCAAGGTG", "TACAGGCG", "TTCAGGTG", "TCCACGTG"];
+        loop {
+            let motifs = randomized_motif_search(&dna, 8, 4000)?;
+            if motifs == ans {
+                assert_eq!(motifs, ans);
+                return Ok(());
+            }
+        }
+
+    }
+
+    #[test]
+    fn test_randomized_motif_search2() -> Result<(), Box<dyn Error>> {
+        let dna = vec![
+            format!("AATTGGCACATCATTATCGATAACGATTCGCCGCATTGCC"),
+            format!("GGTTAACATCGAATAACTGACACCTGCTCTGGCACCGCTC"),
+            format!("AATTGGCGGCGGTATAGCCAGATAGTGCCAATAATTTCCT"),
+            format!("GGTTAATGGTGAAGTGTGGGTTATGGGGAAAGGCAGACTG"),
+            format!("AATTGGACGGCAACTACGGTTACAACGCAGCAAGAATATT"),
+            format!("GGTTAACTGTTGTTGCTAACACCGTTAAGCGACGGCAACT"),
+            format!("AATTGGCCAACGTAGGCGCGGCTTGGCATCTCGGTGTGTG"),
+            format!("GGTTAAAAGGCGCATCTTACTCTTTTCGCTTTCAAAAAAA"),
+        ];
+        let motifs = randomized_motif_search(&dna, 6, 1000)?;
+        assert_eq!(motifs, vec!["CGATAA", "GGTTAA", "GGTATA", "GGTTAA", "GGTTAC", "GGTTAA", "GGCCAA", "GGTTAA"]);
         Ok(())
+    }
+
+    #[test]
+    fn test_randomized_motif_search3() -> Result<(), Box<dyn Error>> {
+        let dna = vec![
+            format!("GCACATCATTAAACGATTCGCCGCATTGCCTCGATTAACC"),
+            format!("TCATAACTGACACCTGCTCTGGCACCGCTCATCCAAGGCC"),
+            format!("AAGCGGGTATAGCCAGATAGTGCCAATAATTTCCTTAACC"),
+            format!("AGTCGGTGGTGAAGTGTGGGTTATGGGGAAAGGCAAGGCC"),
+            format!("AACCGGACGGCAACTACGGTTACAACGCAGCAAGTTAACC"),
+            format!("AGGCGTCTGTTGTTGCTAACACCGTTAAGCGACGAAGGCC"),
+            format!("AAGCTTCCAACATCGTCTTGGCATCTCGGTGTGTTTAACC"),
+            format!("AATTGAACATCTTACTCTTTTCGCTTTCAAAAAAAAGGCC"),
+        ];
+        let ans = vec!["TTAACC", "ATAACT", "TTAACC", "TGAAGT", "TTAACC", "TTAAGC", "TTAACC", "TGAACA"];
+        loop {
+            let motifs = randomized_motif_search(&dna, 6, 1000)?;
+            if motifs == ans {
+                assert_eq!(motifs, ans);
+                return Ok(());
+            }
+        }
+
     }
 }

@@ -5,20 +5,20 @@ use crate::utils::hamming::hamming_distance;
 
 pub fn motif_enumeration(
     dna: &[String],
-    k: usize,
-    d: usize,
+    kmer_length: usize,
+    max_diff: usize,
 ) -> Result<Vec<String>, Box<dyn Error>> {
     // Early return for invalid inputs
-    if dna.is_empty() || k == 0 || d > k {
+    if dna.is_empty() || kmer_length == 0 || max_diff > kmer_length {
         return Ok(Vec::new());
     }
 
     // Get all possible k-mer neighbors from the first sequence
     let mut neighbor_set = std::collections::HashSet::new();
     let first_seq = &dna[0];
-    for i in 0..=first_seq.len() - k {
-        let kmer = &first_seq[i..i + k];
-        neighbor_set.extend(neighbors(kmer, d, &DNA)?);
+    for i in 0..=first_seq.len() - kmer_length {
+        let kmer = &first_seq[i..i + kmer_length];
+        neighbor_set.extend(neighbors(kmer, max_diff, &DNA)?);
     }
 
     // Find patterns that appear in all sequences
@@ -26,8 +26,8 @@ pub fn motif_enumeration(
         .into_iter()
         .filter(|pattern| {
             dna[1..].iter().all(|sequence| {
-                (0..=sequence.len() - k)
-                    .any(|i| hamming_distance(pattern, &sequence[i..i + k]).unwrap() <= d)
+                (0..=sequence.len() - kmer_length)
+                    .any(|i| hamming_distance(pattern, &sequence[i..i + kmer_length]).unwrap() <= max_diff)
             })
         })
         .collect();

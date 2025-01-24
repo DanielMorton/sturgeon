@@ -1,8 +1,8 @@
 use std::collections::{HashMap, HashSet};
 
-pub fn freq_map(text: &str, k: usize) -> HashMap<String, usize> {
+pub fn freq_map(text: &str, kmer_length: usize) -> HashMap<String, usize> {
     // Early return for invalid cases
-    if k == 0 || k > text.len() {
+    if kmer_length == 0 || kmer_length > text.len() {
         return HashMap::new();
     }
 
@@ -10,7 +10,7 @@ pub fn freq_map(text: &str, k: usize) -> HashMap<String, usize> {
 
     // Use windows iterator for more idiomatic and potentially faster iteration
     text.as_bytes()
-        .windows(k)
+        .windows(kmer_length)
         .map(|window| String::from_utf8_lossy(window).into_owned())
         .for_each(|substr| {
             *word_freq.entry(substr).or_insert(0) += 1;
@@ -22,10 +22,10 @@ pub fn freq_map(text: &str, k: usize) -> HashMap<String, usize> {
 pub fn frequent_words(
     text: &str,
     frequencies: &HashMap<String, usize>,
-    k: usize,
+    kmer_length: usize,
     min_freq: usize,
 ) -> Vec<String> {
-    if k == 0 || k > text.len() {
+    if kmer_length == 0 || kmer_length > text.len() {
         return Vec::new();
     }
 
@@ -39,21 +39,21 @@ pub fn frequent_words(
 pub fn frequent_word_set(
     text: &str,
     frequencies: &HashMap<String, usize>,
-    k: usize,
+    kmer_length: usize,
     min_freq: usize,
 ) -> HashSet<String> {
-    HashSet::from_iter(frequent_words(text, frequencies, k, min_freq))
+    HashSet::from_iter(frequent_words(text, frequencies, kmer_length, min_freq))
 }
 
-pub fn most_frequent_words(text: &str, k: usize) -> Vec<String> {
-    if k == 0 || k > text.len() {
+pub fn most_frequent_words(text: &str, kmer_length: usize) -> Vec<String> {
+    if kmer_length == 0 || kmer_length > text.len() {
         return Vec::new();
     }
 
-    let frequencies = freq_map(text, k);
+    let frequencies = freq_map(text, kmer_length);
 
     let max_frequency = frequencies.values().max().copied().unwrap_or(0);
-    frequent_words(text, &frequencies, k, max_frequency)
+    frequent_words(text, &frequencies, kmer_length, max_frequency)
 }
 
 mod tests {
