@@ -1,23 +1,7 @@
 use std::error::Error;
+use crate::utils::InvalidNucleotideError;
 
-#[derive(Debug, PartialEq)]
-pub struct InvalidNucleotideError {
-    character: char,
-}
 
-impl Error for InvalidNucleotideError {}
-
-impl InvalidNucleotideError {
-    fn new(character: char) -> Self {
-        InvalidNucleotideError { character }
-    }
-}
-
-impl std::fmt::Display for InvalidNucleotideError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "Invalid nucleotide '{}'", self.character)
-    }
-}
 fn skew_score(c: char) -> Result<i32, InvalidNucleotideError> {
     match c {
         'A' | 'T' => Ok(0),
@@ -55,7 +39,7 @@ pub(crate) fn minimum_skew(genome: &str) -> Result<Vec<usize>, Box<dyn Error>> {
 }
 
 mod tests {
-    use crate::motif::skew::{minimum_skew, skew_score, InvalidNucleotideError};
+    use crate::motif::skew::{minimum_skew, skew_score};
     use std::error::Error;
     use std::fs;
 

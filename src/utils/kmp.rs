@@ -60,7 +60,7 @@ fn pattern_count(text: &str, pattern: &str) -> usize {
 }
 
 mod tests {
-    use crate::motif::kmp::{build_lps, kmp, pattern_count};
+    use crate::utils::kmp::{build_lps, kmp, pattern_count};
 
     #[test]
     fn test_lps1() {

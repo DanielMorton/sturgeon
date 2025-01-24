@@ -1,33 +1,9 @@
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::error::Error;
+use crate::utils::dna::DNA_COMPLEMENT_MAP;
+use crate::utils::InvalidNucleotidePositionError;
+use crate::utils::rna::RNA_COMPLEMENT_MAP;
 
-#[derive(Debug, PartialEq)]
-pub struct InvalidNucleotidePositionError {
-    character: char,
-    position: usize,
-}
-
-impl Error for InvalidNucleotidePositionError {}
-
-impl InvalidNucleotidePositionError {
-    pub fn new(character: char, position: usize) -> Self {
-        InvalidNucleotidePositionError {
-            character,
-            position,
-        }
-    }
-}
-
-impl std::fmt::Display for InvalidNucleotidePositionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(
-            f,
-            "Invalid nucleotide '{}' at position {}",
-            self.character, self.position
-        )
-    }
-}
 
 fn reverse_complement(
     pattern: &str,

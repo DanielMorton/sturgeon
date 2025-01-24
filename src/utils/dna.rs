@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 pub static DNA: Lazy<Vec<char>> = Lazy::new(|| vec!['A', 'C', 'G', 'T']);
 
-static DNA_COMPLEMENT_MAP: Lazy<HashMap<char, char>> = Lazy::new(|| {
+pub static DNA_COMPLEMENT_MAP: Lazy<HashMap<char, char>> = Lazy::new(|| {
     let mut m = HashMap::new();
     m.insert('A', 'T');
     m.insert('T', 'A');

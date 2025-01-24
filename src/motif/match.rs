@@ -1,5 +1,5 @@
-use crate::motif::hamming::hamming_distance;
 use std::error::Error;
+use crate::utils::hamming::hamming_distance;
 
 fn approximate_pattern_matching(
     text: &str,

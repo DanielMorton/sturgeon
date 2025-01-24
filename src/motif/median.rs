@@ -1,7 +1,7 @@
-use crate::motif::hamming::min_hamming_distance;
 use crate::motif::neighbors::neighbors;
 use crate::utils::DNA;
 use std::error::Error;
+use crate::utils::hamming::min_hamming_distance;
 
 pub fn median_string(dna: &[String], k: usize) -> Result<String, Box<dyn Error>> {
     // Initialize with k consecutive 'A's

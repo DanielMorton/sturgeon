@@ -1,6 +1,6 @@
-use crate::motif::hamming::hamming_distance;
 use crate::utils::{InvalidNucleotidePositionError, DNA, DNA_INDEX};
 use std::error::Error;
+use crate::utils::hamming::hamming_distance;
 
 pub fn motif_to_profile(
     motifs: &[String],
