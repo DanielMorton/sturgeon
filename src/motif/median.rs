@@ -1,25 +1,17 @@
-use crate::motif::neighbors::neighbors;
+use crate::motif::neighbors::all_kmers;
 use crate::utils::hamming::min_hamming_distance;
-use crate::utils::DNA;
 use std::error::Error;
 
 pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<dyn Error>> {
     // Initialize with k consecutive 'A's
-    let initial_pattern = "A".repeat(kmer_length);
-    let mut kmers = neighbors(&initial_pattern, kmer_length, &DNA)?
-        .into_iter()
-        .collect::<Vec<_>>();
+    let mut kmers = all_kmers(kmer_length)?;
     kmers.sort();
 
     let mut min_distance = kmer_length * dna.len();
     let mut median = kmers[0].clone();
 
     for kmer in &kmers {
-        let distances: Result<Vec<usize>, _> = dna
-            .iter()
-            .map(|sequence| min_hamming_distance(kmer, sequence))
-            .collect();
-        let total_distance = distances?.iter().sum();
+        let total_distance = score_kmer(&dna, kmer)?;
 
         if total_distance < min_distance {
             median = kmer.clone();
@@ -27,6 +19,14 @@ pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<d
         }
     }
     Ok(median)
+}
+
+pub fn score_kmer(dna: &[String], kmer: &str) -> Result<usize, Box<dyn Error>> {
+    let distances = dna
+        .iter()
+        .map(|sequence| min_hamming_distance(kmer, sequence))
+        .collect::<Result<Vec<usize>, _>>()?;
+    Ok(distances.iter().sum())
 }
 
 mod tests {

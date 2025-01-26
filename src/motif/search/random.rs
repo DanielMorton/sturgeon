@@ -39,7 +39,7 @@ fn single_motif_search(dna: &[String], k: usize) -> Result<(usize, Vec<String>),
     }
 }
 
-fn randomized_motif_search(
+pub fn randomized_motif_search(
     dna: &[String],
     k: usize,
     num_iters: usize,

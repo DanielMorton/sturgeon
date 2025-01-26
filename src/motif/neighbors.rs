@@ -1,4 +1,5 @@
 use crate::utils::hamming::hamming_distance;
+use crate::utils::DNA;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -37,6 +38,13 @@ pub(crate) fn neighbors(
     }
 
     Ok(result)
+}
+
+pub fn all_kmers(kmer_length: usize) -> Result<Vec<String>, Box<dyn Error>> {
+    let initial_pattern = "A".repeat(kmer_length);
+    Ok(neighbors(&initial_pattern, kmer_length, &DNA)?
+        .into_iter()
+        .collect::<Vec<_>>())
 }
 
 mod test {

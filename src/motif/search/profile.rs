@@ -31,10 +31,15 @@ pub fn motif_to_profile(
 }
 
 pub fn score_motifs(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<usize, Box<dyn Error>> {
-    let k = motifs[0].len();
+    let consensus = get_consensus(motifs, profile)?;
+
+    score_consensus(&motifs, &consensus)
+}
+
+pub fn get_consensus(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<String, Box<dyn Error>> {
     let mut consensus = String::new();
 
-    for j in 0..k {
+    for j in 0..motifs[0].len() {
         let mut max_prob = 0.0;
         let mut consensus_nucleotide = '\0';
 
@@ -46,9 +51,12 @@ pub fn score_motifs(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<usize,
             }
         }
 
-        consensus.push(consensus_nucleotide as char);
+        consensus.push(consensus_nucleotide);
     }
+    Ok(consensus)
+}
 
+pub fn score_consensus(motifs: &[String], consensus: &str) -> Result<usize, Box<dyn Error>> {
     Ok(motifs
         .iter()
         .map(|motif| hamming_distance(motif, &consensus))

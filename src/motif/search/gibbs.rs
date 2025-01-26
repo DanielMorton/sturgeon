@@ -63,7 +63,8 @@ fn gibbs_sampler(
     gibbs_iterations: usize,
     gibbs_runs: usize,
 ) -> Result<Vec<String>, Box<dyn Error>> {
-    let (mut best_score, mut best_motifs) = single_gibbs_sample(dna, kmer_length, gibbs_iterations)?;
+    let (mut best_score, mut best_motifs) =
+        single_gibbs_sample(dna, kmer_length, gibbs_iterations)?;
 
     for _ in 1..gibbs_runs {
         let (score, motifs) = single_gibbs_sample(dna, kmer_length, gibbs_iterations)?;
@@ -76,8 +77,8 @@ fn gibbs_sampler(
 }
 
 mod tests {
-    use std::error::Error;
     use crate::motif::search::gibbs::gibbs_sampler;
+    use std::error::Error;
 
     #[test]
     fn test_gibbs_sampler1() -> Result<(), Box<dyn Error>> {
@@ -86,16 +87,13 @@ mod tests {
             format!("GGGCGAGGTATGTGTAAGTGCCAAGGTGCCAG"),
             format!("TAGTACCGAGACCGAAAGAAGTATACAGGCGT"),
             format!("TAGATCAAGTTTCAGGTGCACGTCGGTGAACC"),
-            format!("AATCCACCAGCTCCACGTGCAATGTTGGCCTA")
+            format!("AATCCACCAGCTCCACGTGCAATGTTGGCCTA"),
         ];
         let ans = vec!["AACGGCCA", "AAGTGCCA", "TAGTACCG", "AAGTTTCA", "ACGTGCAA"];
         loop {
             let motifs = gibbs_sampler(&dna, 8, 100, 1000)?;
             if motifs == ans {
-                assert_eq!(
-                    motifs,
-                    ans
-                );
+                assert_eq!(motifs, ans);
                 return Ok(());
             }
         }
