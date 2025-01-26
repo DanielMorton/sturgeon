@@ -1,6 +1,6 @@
+use crate::utils::hamming::hamming_distance;
 use crate::utils::{InvalidNucleotidePositionError, DNA, DNA_INDEX};
 use std::error::Error;
-use crate::utils::hamming::hamming_distance;
 
 pub fn motif_to_profile(
     motifs: &[String],
@@ -36,7 +36,7 @@ pub fn score_motifs(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<usize,
 
     for j in 0..k {
         let mut max_prob = 0.0;
-        let mut consensus_nucleotide = 'A';
+        let mut consensus_nucleotide = '\0';
 
         for (i, n) in DNA.iter().enumerate() {
             let prob = profile[i][j];

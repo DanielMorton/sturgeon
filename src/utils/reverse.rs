@@ -1,9 +1,8 @@
+use crate::utils::dna::DNA_COMPLEMENT_MAP;
+use crate::utils::rna::RNA_COMPLEMENT_MAP;
+use crate::utils::InvalidNucleotidePositionError;
 use std::collections::HashMap;
 use std::error::Error;
-use crate::utils::dna::DNA_COMPLEMENT_MAP;
-use crate::utils::InvalidNucleotidePositionError;
-use crate::utils::rna::RNA_COMPLEMENT_MAP;
-
 
 fn reverse_complement(
     pattern: &str,

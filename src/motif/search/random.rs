@@ -1,7 +1,7 @@
+use crate::motif::search::greedy::profile_most_probable_kmer;
 use crate::motif::search::profile::{motif_to_profile, score_motifs};
 use rand::Rng;
 use std::error::Error;
-use crate::motif::search::greedy::profile_most_probable_kmer;
 
 fn single_motif_search(dna: &[String], k: usize) -> Result<(usize, Vec<String>), Box<dyn Error>> {
     let mut rng = rand::thread_rng();
@@ -39,8 +39,11 @@ fn single_motif_search(dna: &[String], k: usize) -> Result<(usize, Vec<String>),
     }
 }
 
-fn randomized_motif_search(dna: &[String], k: usize, num_iters: usize) -> Result<Vec<String>, Box<dyn Error>> {
-
+fn randomized_motif_search(
+    dna: &[String],
+    k: usize,
+    num_iters: usize,
+) -> Result<Vec<String>, Box<dyn Error>> {
     let (mut best_score, mut best_motifs) = single_motif_search(dna, k)?;
 
     for _ in 1..num_iters {
@@ -55,8 +58,8 @@ fn randomized_motif_search(dna: &[String], k: usize, num_iters: usize) -> Result
 }
 
 mod tests {
-    use std::error::Error;
     use crate::motif::search::random::randomized_motif_search;
+    use std::error::Error;
 
     #[test]
     fn test_randomized_motif_search1() -> Result<(), Box<dyn Error>> {
@@ -75,7 +78,6 @@ mod tests {
                 return Ok(());
             }
         }
-
     }
 
     #[test]
@@ -91,7 +93,10 @@ mod tests {
             format!("GGTTAAAAGGCGCATCTTACTCTTTTCGCTTTCAAAAAAA"),
         ];
         let motifs = randomized_motif_search(&dna, 6, 1000)?;
-        assert_eq!(motifs, vec!["CGATAA", "GGTTAA", "GGTATA", "GGTTAA", "GGTTAC", "GGTTAA", "GGCCAA", "GGTTAA"]);
+        assert_eq!(
+            motifs,
+            vec!["CGATAA", "GGTTAA", "GGTATA", "GGTTAA", "GGTTAC", "GGTTAA", "GGCCAA", "GGTTAA"]
+        );
         Ok(())
     }
 
@@ -107,7 +112,9 @@ mod tests {
             format!("AAGCTTCCAACATCGTCTTGGCATCTCGGTGTGTTTAACC"),
             format!("AATTGAACATCTTACTCTTTTCGCTTTCAAAAAAAAGGCC"),
         ];
-        let ans = vec!["TTAACC", "ATAACT", "TTAACC", "TGAAGT", "TTAACC", "TTAAGC", "TTAACC", "TGAACA"];
+        let ans = vec![
+            "TTAACC", "ATAACT", "TTAACC", "TGAAGT", "TTAACC", "TTAAGC", "TTAACC", "TGAACA",
+        ];
         loop {
             let motifs = randomized_motif_search(&dna, 6, 1000)?;
             if motifs == ans {
@@ -115,6 +122,5 @@ mod tests {
                 return Ok(());
             }
         }
-
     }
 }

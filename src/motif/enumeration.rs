@@ -1,7 +1,7 @@
 use crate::motif::neighbors::neighbors;
+use crate::utils::hamming::hamming_distance;
 use crate::utils::DNA;
 use std::error::Error;
-use crate::utils::hamming::hamming_distance;
 
 pub fn motif_enumeration(
     dna: &[String],
@@ -26,8 +26,9 @@ pub fn motif_enumeration(
         .into_iter()
         .filter(|pattern| {
             dna[1..].iter().all(|sequence| {
-                (0..=sequence.len() - kmer_length)
-                    .any(|i| hamming_distance(pattern, &sequence[i..i + kmer_length]).unwrap() <= max_diff)
+                (0..=sequence.len() - kmer_length).any(|i| {
+                    hamming_distance(pattern, &sequence[i..i + kmer_length]).unwrap() <= max_diff
+                })
             })
         })
         .collect();

@@ -1,3 +1,5 @@
+mod gibbs;
 pub mod greedy;
-mod random;
 mod profile;
+mod random;
+mod random_kmer;

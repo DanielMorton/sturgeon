@@ -44,7 +44,7 @@ pub fn min_hamming_distance(pattern: &str, text: &str) -> Result<usize, LengthMi
 }
 
 mod tests {
-    use crate::utils::hamming::{hamming_distance, LengthMismatchError, min_hamming_distance};
+    use crate::utils::hamming::{hamming_distance, min_hamming_distance, LengthMismatchError};
 
     #[test]
     fn test_hamming_distance1() -> Result<(), LengthMismatchError> {

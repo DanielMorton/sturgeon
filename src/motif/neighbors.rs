@@ -1,6 +1,6 @@
+use crate::utils::hamming::hamming_distance;
 use std::collections::HashSet;
 use std::error::Error;
-use crate::utils::hamming::hamming_distance;
 
 pub(crate) fn neighbors(
     pattern: &str,

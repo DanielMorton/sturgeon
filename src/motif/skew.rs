@@ -1,6 +1,5 @@
-use std::error::Error;
 use crate::utils::InvalidNucleotideError;
-
+use std::error::Error;
 
 fn skew_score(c: char) -> Result<i32, InvalidNucleotideError> {
     match c {

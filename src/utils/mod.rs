@@ -1,10 +1,10 @@
 mod dna;
 mod fasta;
-mod reverse;
-mod rna;
+pub mod hamming;
 mod kmp;
 mod nucleotide;
-pub mod hamming;
+mod reverse;
+mod rna;
 
 pub use dna::{DNA, DNA_INDEX};
 pub use fasta::Fasta;
