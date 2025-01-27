@@ -66,15 +66,11 @@ mod tests {
 
     #[test]
     fn test_overlap_graph2() -> Result<(), Box<dyn Error>> {
-        let patterns = vec![
-            format!("ACT"),
-            format!("CTT"),
-            format!("TTT")
-        ];
+        let patterns = vec![format!("ACT"), format!("CTT"), format!("TTT")];
         let ans = HashMap::from([
             (format!("ACT"), vec![format!("CTT")]),
             (format!("CTT"), vec![format!("TTT")]),
-            (format!("TTT"), vec![format!("TTT")])
+            (format!("TTT"), vec![format!("TTT")]),
         ]);
         assert_eq!(overlap_graph(&patterns)?, ans);
         Ok(())
@@ -82,12 +78,8 @@ mod tests {
 
     #[test]
     fn test_overlap_graph3() -> Result<(), Box<dyn Error>> {
-        let patterns = vec![
-            format!("CCCC")
-        ];
-        let ans = HashMap::from([
-            (format!("CCCC"), vec![format!("CCCC")])
-        ]);
+        let patterns = vec![format!("CCCC")];
+        let ans = HashMap::from([(format!("CCCC"), vec![format!("CCCC")])]);
         assert_eq!(overlap_graph(&patterns)?, ans);
         Ok(())
     }
@@ -104,7 +96,7 @@ mod tests {
         ];
         let ans = HashMap::from([
             (format!("CT"), vec![format!("TT")]),
-            (format!("TT"), vec![format!("TT")])
+            (format!("TT"), vec![format!("TT")]),
         ]);
         assert_eq!(overlap_graph(&patterns)?, ans);
         Ok(())
