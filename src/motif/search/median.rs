@@ -21,6 +21,21 @@ pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<d
     Ok(median)
 }
 
+pub fn median_list(dna: &[String], kmer_length: usize) -> Result<Vec<String>, Box<dyn Error>> {
+    // Initialize with k consecutive 'A's
+    let mut kmers = all_kmers(kmer_length)?;
+
+    let kmer_scores = kmers.iter()
+        .map(|kmer| score_kmer(&dna, kmer))
+        .collect::<Result<Vec<usize>, _>>()?;
+
+    let min_kmer_score = *kmer_scores.iter().min().unwrap();
+    let median_kmers = kmers.iter().zip(kmer_scores.iter())
+        .filter(|(_, &s)| s == min_kmer_score)
+        .map(|(k, _)| k.to_owned()).collect::<Vec<_>>();
+    Ok(median_kmers)
+}
+
 pub fn score_kmer(dna: &[String], kmer: &str) -> Result<usize, Box<dyn Error>> {
     let distances = dna
         .iter()
@@ -30,8 +45,8 @@ pub fn score_kmer(dna: &[String], kmer: &str) -> Result<usize, Box<dyn Error>> {
 }
 
 mod tests {
-    use crate::motif::median::median_string;
     use std::error::Error;
+    use crate::motif::search::median::median_string;
 
     #[test]
     fn test_median1() -> Result<(), Box<dyn Error>> {
