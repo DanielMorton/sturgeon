@@ -1,4 +1,6 @@
-use crate::motif::{get_consensus, median_list, motif_to_profile, randomized_motif_search, score_consensus};
+use crate::motif::{
+    get_consensus, median_list, motif_to_profile, randomized_motif_search, score_consensus,
+};
 use clap::{value_parser, Parser};
 use std::error::Error;
 use std::fs;
@@ -43,7 +45,8 @@ impl DosRArgs {
 }
 pub fn run_median(args: DosRArgs) -> Result<(), Box<dyn Error>> {
     let input_file = args.get_input()?;
-    let (min_kmer_length, max_kmer_length) = (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
+    let (min_kmer_length, max_kmer_length) =
+        (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
     let dna = fs::read_to_string(input_file)?
         .split('\n')
         .filter(|s| s.len() > 0)
@@ -61,7 +64,8 @@ pub fn run_median(args: DosRArgs) -> Result<(), Box<dyn Error>> {
 pub fn run_random(args: DosRArgs) -> Result<(), Box<dyn Error>> {
     let input_file = args.get_input()?;
     let num_iters = args.get_num_iters()?;
-    let (min_kmer_length, max_kmer_length) = (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
+    let (min_kmer_length, max_kmer_length) =
+        (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
     let dna = fs::read_to_string(input_file)?
         .split('\n')
         .filter(|s| s.len() > 0)
