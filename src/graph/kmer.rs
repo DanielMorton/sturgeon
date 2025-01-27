@@ -1,10 +1,10 @@
 use std::error::Error;
 use std::ops::Deref;
 
-fn kmer_composition(text: &str, k: usize) -> Result<Vec<String>, Box<dyn Error>> {
+fn kmer_composition(text: &str, kmer_length: usize) -> Result<Vec<String>, Box<dyn Error>> {
     Ok(text
         .as_bytes()
-        .windows(k)
+        .windows(kmer_length)
         .map(String::from_utf8_lossy)
         .map(|s| s.deref().to_owned())
         .collect::<Vec<_>>())

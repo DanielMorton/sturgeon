@@ -2,6 +2,17 @@ use std::error::Error;
 use std::fmt::Display;
 
 #[derive(Debug)]
+pub(crate) struct EmptyGraphError;
+
+impl Error for EmptyGraphError {}
+
+impl Display for EmptyGraphError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Empty Graph.")
+    }
+}
+
+#[derive(Debug)]
 pub(crate) struct EmptyPathError;
 
 impl Error for EmptyPathError {}

@@ -43,7 +43,7 @@ fn greedy_motif_search_laplace(
     // Initialize best motifs with first k-mers
     let mut best_motifs: Vec<String> = dna.iter().map(|d| d[0..k].to_string()).collect();
 
-    let mut best_profile = motif_to_profile(&best_motifs, laplace)?;
+    let best_profile = motif_to_profile(&best_motifs, laplace)?;
     let mut best_score = score_motifs(&best_motifs, &best_profile)?;
 
     // Iterate through possible first motifs
@@ -61,7 +61,6 @@ fn greedy_motif_search_laplace(
         let score = score_motifs(&motifs, &profile)?;
         if score < best_score {
             best_motifs = motifs;
-            best_profile = profile;
             best_score = score;
         }
     }

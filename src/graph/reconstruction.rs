@@ -1,5 +1,14 @@
-use crate::graph::err::{EmptyPathError, InvalidPathError};
 use std::error::Error;
+use crate::graph::debruijn::debruijn_kmers;
+use crate::graph::err::{EmptyPathError, InvalidPathError};
+use crate::graph::euler::eulerian_path;
+
+fn string_reconstruction(patterns: Vec<String>) -> Result<String, Box<dyn Error>> {
+    let graph = debruijn_kmers(&patterns)?;
+    let path = eulerian_path(&graph)?;
+    let genome = genome_path(&path)?;
+    Ok(genome)
+}
 
 fn genome_path(path: &[String]) -> Result<String, Box<dyn Error>> {
     if path.is_empty() {

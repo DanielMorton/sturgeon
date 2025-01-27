@@ -23,7 +23,7 @@ pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<d
 
 pub fn median_list(dna: &[String], kmer_length: usize) -> Result<Vec<String>, Box<dyn Error>> {
     // Initialize with k consecutive 'A's
-    let mut kmers = all_kmers(kmer_length)?;
+    let kmers = all_kmers(kmer_length)?;
 
     let kmer_scores = kmers
         .iter()
