@@ -1,5 +1,6 @@
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
+use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
 
@@ -7,8 +8,9 @@ mod dosr;
 mod graph;
 mod motif;
 mod ori;
+mod translate;
+mod translation;
 mod utils;
-
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -25,6 +27,8 @@ enum Commands {
     DosRRandom(DosRArgs),
     #[command(name = "ori")]
     Ori(OriArgs),
+    #[command(name = "translate")]
+    Translate(TranslateArgs),
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -33,5 +37,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Ori(args) => run_ori(args),
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),
+        Commands::Translate(args) => run_translation(args),
     }
 }

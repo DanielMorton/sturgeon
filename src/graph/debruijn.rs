@@ -1,20 +1,15 @@
-use std::error::Error;
 use crate::graph::graph::Graph;
+use std::error::Error;
 
-pub fn debruijn_string(
-    text: &str,
-    kmer_length: usize,
-) -> Result<Graph<String>, Box<dyn Error>> {
+pub fn debruijn_string(text: &str, kmer_length: usize) -> Result<Graph<String>, Box<dyn Error>> {
     let mut graph = Graph::new();
 
     for i in 0..=text.len() - kmer_length {
-        let pattern = &text[i..i+kmer_length];
-        let prefix = pattern[..kmer_length-1].to_owned();
+        let pattern = &text[i..i + kmer_length];
+        let prefix = pattern[..kmer_length - 1].to_owned();
         let suffix = pattern[1..].to_owned();
 
-        graph.entry(prefix)
-            .or_insert_with(Vec::new)
-            .push(suffix);
+        graph.entry(prefix).or_insert_with(Vec::new).push(suffix);
     }
 
     for value in graph.values_mut() {
@@ -29,7 +24,8 @@ pub fn debruijn_kmers(patterns: &[String]) -> Result<Graph<String>, Box<dyn Erro
     let mut graph = Graph::new();
 
     for pattern in patterns {
-        graph.entry(pattern[..p-1].to_owned())
+        graph
+            .entry(pattern[..p - 1].to_owned())
             .or_insert_with(Vec::new)
             .push(pattern[1..].to_owned());
     }
@@ -39,16 +35,16 @@ pub fn debruijn_kmers(patterns: &[String]) -> Result<Graph<String>, Box<dyn Erro
     Ok(graph)
 }
 
-fn de_bruijn_paired_kmers(paired_reads: &[(String, String)]) -> Result<Graph<String>, Box<dyn Error>> {
+fn de_bruijn_paired_kmers(
+    paired_reads: &[(String, String)],
+) -> Result<Graph<String>, Box<dyn Error>> {
     let p = paired_reads[0].0.len();
     let mut graph = Graph::new();
 
     for pattern in paired_reads {
-        let key = format!("{}|{}", &pattern.0[..p -1], &pattern.1[..p -1]);
+        let key = format!("{}|{}", &pattern.0[..p - 1], &pattern.1[..p - 1]);
         let value = format!("{}|{}", &pattern.0[1..], &pattern.1[1..]);
-        graph.entry(key)
-            .or_insert_with(Vec::new)
-            .push(value);
+        graph.entry(key).or_insert_with(Vec::new).push(value);
     }
     add_terminal_nodes(&mut graph)?;
     sort_values(&mut graph)?;
@@ -58,7 +54,8 @@ fn de_bruijn_paired_kmers(paired_reads: &[(String, String)]) -> Result<Graph<Str
 
 fn add_terminal_nodes(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
     // First collect all values that need to be added
-    let mut nodes_to_add = graph.values()
+    let mut nodes_to_add = graph
+        .values()
         .flat_map(|values| values.clone())
         .collect::<Vec<_>>();
     nodes_to_add.sort();
@@ -71,7 +68,7 @@ fn add_terminal_nodes(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn sort_values(graph:&mut Graph<String>) -> Result<(), Box<dyn Error>> {
+fn sort_values(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
     for values in graph.values_mut() {
         values.sort();
     }
@@ -103,7 +100,7 @@ mod tests {
         let text = format!("AGCCT");
         let ans = HashMap::from([
             (format!("AGC"), vec![format!("GCC")]),
-            (format!("GCC"), vec![format!("CCT")])
+            (format!("GCC"), vec![format!("CCT")]),
         ]);
         assert_eq!(debruijn_string(&text, 4)?, ans);
         Ok(())
@@ -115,7 +112,7 @@ mod tests {
         let ans = HashMap::from([
             (format!("CC"), vec![format!("CG"), format!("CT")]),
             (format!("CT"), vec![format!("TC")]),
-            (format!("TC"), vec![format!("CC")])
+            (format!("TC"), vec![format!("CC")]),
         ]);
         assert_eq!(debruijn_string(&text, 3)?, ans);
         Ok(())
@@ -128,7 +125,7 @@ mod tests {
             (format!("CTT"), vec![format!("TTC"), format!("TTC")]),
             (format!("GCT"), vec![format!("CTT")]),
             (format!("TCT"), vec![format!("CTT")]),
-            (format!("TTC"), vec![format!("TCT")])
+            (format!("TTC"), vec![format!("TCT")]),
         ]);
         assert_eq!(debruijn_string(&text, 4)?, ans);
         Ok(())
@@ -137,11 +134,17 @@ mod tests {
     #[test]
     fn test_debruijn_string5() -> Result<(), Box<dyn Error>> {
         let text = format!("TTTTTTTTTT");
-        let ans = HashMap::from([
-            (format!("TTTT"), vec![format!("TTTT"), format!("TTTT"),
-                                   format!("TTTT"), format!("TTTT"),
-                                   format!("TTTT"), format!("TTTT")])
-        ]);
+        let ans = HashMap::from([(
+            format!("TTTT"),
+            vec![
+                format!("TTTT"),
+                format!("TTTT"),
+                format!("TTTT"),
+                format!("TTTT"),
+                format!("TTTT"),
+                format!("TTTT"),
+            ],
+        )]);
         assert_eq!(debruijn_string(&text, 5)?, ans);
         Ok(())
     }
@@ -155,14 +158,14 @@ mod tests {
             format!("GGGA"),
             format!("CAGG"),
             format!("AGGG"),
-            format!("GGAG")
+            format!("GGAG"),
         ];
         let ans = HashMap::from([
             (format!("AGG"), vec![format!("GGG")]),
             (format!("CAG"), vec![format!("AGG"), format!("AGG")]),
             (format!("GAG"), vec![format!("AGG")]),
             (format!("GGA"), vec![format!("GAG")]),
-            (format!("GGG"), vec![format!("GGA"), format!("GGG")])
+            (format!("GGG"), vec![format!("GGA"), format!("GGG")]),
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())
@@ -170,18 +173,14 @@ mod tests {
 
     #[test]
     fn test_debruijn_kmers2() -> Result<(), Box<dyn Error>> {
-        let patterns = vec![
-            format!("GCAAG"),
-            format!("CAGCT"),
-            format!("TGACG")
-        ];
+        let patterns = vec![format!("GCAAG"), format!("CAGCT"), format!("TGACG")];
         let ans = HashMap::from([
             (format!("AGCT"), vec![]),
             (format!("CAAG"), vec![]),
             (format!("CAGC"), vec![format!("AGCT")]),
             (format!("GACG"), vec![]),
             (format!("GCAA"), vec![format!("CAAG")]),
-            (format!("TGAC"), vec![format!("GACG")])
+            (format!("TGAC"), vec![format!("GACG")]),
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())
@@ -189,16 +188,12 @@ mod tests {
 
     #[test]
     fn test_debruijn_kmers3() -> Result<(), Box<dyn Error>> {
-        let patterns = vec![
-            format!("AGGT"),
-            format!("GGCT"),
-            format!("AGGC")
-        ];
+        let patterns = vec![format!("AGGT"), format!("GGCT"), format!("AGGC")];
         let ans = HashMap::from([
             (format!("AGG"), vec![format!("GGC"), format!("GGT")]),
             (format!("GCT"), vec![]),
             (format!("GGC"), vec![format!("GCT")]),
-            (format!("GGT"), vec![])
+            (format!("GGT"), vec![]),
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())
@@ -211,7 +206,7 @@ mod tests {
             format!("GGCT"),
             format!("AAGT"),
             format!("GGCT"),
-            format!("TTCT")
+            format!("TTCT"),
         ];
         let ans = HashMap::from([
             (format!("AAG"), vec![format!("AGT")]),
@@ -219,7 +214,7 @@ mod tests {
             (format!("GCT"), vec![]),
             (format!("GGC"), vec![format!("GCT"), format!("GCT")]),
             (format!("TCT"), vec![]),
-            (format!("TTC"), vec![format!("TCT"), format!("TCT")])
+            (format!("TTC"), vec![format!("TCT"), format!("TCT")]),
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())
@@ -233,11 +228,21 @@ mod tests {
             format!("CA"),
             format!("CA"),
             format!("CC"),
-            format!("CA")
+            format!("CA"),
         ];
         let ans = HashMap::from([
-            (format!("C"), vec![format!("A"), format!("A"), format!("A"), format!("A"), format!("A"), format!("C")]),
-            (format!("A"), vec![])
+            (
+                format!("C"),
+                vec![
+                    format!("A"),
+                    format!("A"),
+                    format!("A"),
+                    format!("A"),
+                    format!("A"),
+                    format!("C"),
+                ],
+            ),
+            (format!("A"), vec![]),
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())

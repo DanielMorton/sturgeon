@@ -1,9 +1,11 @@
-use std::error::Error;
 use crate::graph::err::EmptyGraphError;
 use crate::graph::graph::Graph;
+use std::error::Error;
 
 pub fn eulerian_cycle<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
-    where T: Clone + Eq + std::hash::Hash {
+where
+    T: Clone + Eq + std::hash::Hash,
+{
     let mut stack = Vec::new();
     let mut cycle = Vec::new();
     let mut graph_copy = graph.clone();
@@ -30,9 +32,9 @@ pub fn eulerian_cycle<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
 }
 
 mod tests {
+    use crate::graph::euler::cycle::eulerian_cycle;
     use std::collections::HashMap;
     use std::error::Error;
-    use crate::graph::euler::cycle::eulerian_cycle;
 
     #[test]
     fn test_eulerian_cycle1() -> Result<(), Box<dyn Error>> {
@@ -59,11 +61,7 @@ mod tests {
 
     #[test]
     fn test_eulerian_cycle2() -> Result<(), Box<dyn Error>> {
-        let graph = HashMap::from([
-            (0, vec![1]),
-            (1, vec![2]),
-            (2, vec![0])
-        ]);
+        let graph = HashMap::from([(0, vec![1]), (1, vec![2]), (2, vec![0])]);
         let mut cycle = eulerian_cycle::<i32>(&graph)?;
         cycle = cycle[..cycle.len() - 1].to_owned();
         let first_zero_pos = cycle.iter().position(|&x| x == 0).unwrap();
@@ -75,12 +73,7 @@ mod tests {
 
     #[test]
     fn test_eulerian_cycle3() -> Result<(), Box<dyn Error>> {
-        let graph = HashMap::from([
-            (0, vec![3, 1]),
-            (1, vec![2]),
-            (2, vec![0]),
-            (3, vec![0])
-        ]);
+        let graph = HashMap::from([(0, vec![3, 1]), (1, vec![2]), (2, vec![0]), (3, vec![0])]);
         let mut cycle = eulerian_cycle::<i32>(&graph)?;
         cycle = cycle[..cycle.len() - 1].to_owned();
         let first_zero_pos = cycle.iter().position(|&x| x == 3).unwrap();
@@ -97,7 +90,7 @@ mod tests {
             (1, vec![2, 3]),
             (2, vec![0]),
             (3, vec![4]),
-            (4, vec![1])
+            (4, vec![1]),
         ]);
         let mut cycle = eulerian_cycle::<i32>(&graph)?;
         cycle = cycle[..cycle.len() - 1].to_owned();
@@ -110,10 +103,7 @@ mod tests {
 
     #[test]
     fn test_eulerian_cycle5() -> Result<(), Box<dyn Error>> {
-        let graph = HashMap::from([
-            (1, vec![2]),
-            (2, vec![1, 2])
-        ]);
+        let graph = HashMap::from([(1, vec![2]), (2, vec![1, 2])]);
         let mut cycle = eulerian_cycle::<i32>(&graph)?;
         cycle = cycle[..cycle.len() - 1].to_owned();
         let first_zero_pos = cycle.iter().position(|&x| x == 1).unwrap();
@@ -131,7 +121,7 @@ mod tests {
             (2, vec![1]),
             (3, vec![10]),
             (4, vec![5]),
-            (5, vec![10])
+            (5, vec![10]),
         ]);
         let mut cycle = eulerian_cycle::<i32>(&graph)?;
         cycle = cycle[..cycle.len() - 1].to_owned();

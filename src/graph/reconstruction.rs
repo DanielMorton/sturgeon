@@ -1,7 +1,7 @@
-use std::error::Error;
 use crate::graph::debruijn::debruijn_kmers;
 use crate::graph::err::{EmptyPathError, InvalidPathError};
 use crate::graph::euler::eulerian_path;
+use std::error::Error;
 
 fn string_reconstruction(patterns: &[String]) -> Result<String, Box<dyn Error>> {
     let graph = debruijn_kmers(&patterns)?;
@@ -31,29 +31,30 @@ pub fn genome_path(path: &[String]) -> Result<String, Box<dyn Error>> {
     Ok(genome)
 }
 
-fn genome_pair_path(path: &[String], gap: usize) -> Result<String, Box<dyn Error>>  {
-    let path_split = path.iter()
+fn genome_pair_path(path: &[String], gap: usize) -> Result<String, Box<dyn Error>> {
+    let path_split = path
+        .iter()
         .map(|s| s.split('|').collect::<Vec<_>>())
-        .map(|p| p.iter().map(|s|s.to_string()).collect::<Vec<_>>())
+        .map(|p| p.iter().map(|s| s.to_string()).collect::<Vec<_>>())
         .collect::<Vec<_>>();
     let mut head = path_split[0][0].clone();
     let mut tail = path_split[0][1].clone();
     let k = head.len();
 
     for p in &path_split[1..] {
-        head.push_str(&p[0][k-1..k]);
-        tail.push_str(&p[1][k-1..k]);
+        head.push_str(&p[0][k - 1..k]);
+        tail.push_str(&p[1][k - 1..k]);
     }
 
-    if &head[k+ gap..] != &tail[..tail.len()-k- gap] {
+    if &head[k + gap..] != &tail[..tail.len() - k - gap] {
         let mut new_path = path[1..].to_vec();
         new_path.push(path[0].clone());
         return genome_pair_path(&new_path, gap);
     }
 
     let mut result = head;
-    result.push_str(&tail[tail.len()-k- gap..]);
-   Ok(result)
+    result.push_str(&tail[tail.len() - k - gap..]);
+    Ok(result)
 }
 
 mod tests {
@@ -110,7 +111,7 @@ mod tests {
             format!("TGT"),
             format!("GTA"),
             format!("TAT"),
-            format!("ATA")
+            format!("ATA"),
         ];
         assert_eq!(string_reconstruction(&path)?, "ACGTGTATA");
         Ok(())
@@ -118,12 +119,7 @@ mod tests {
 
     #[test]
     fn test_string_reconstruction2() -> Result<(), Box<dyn Error>> {
-        let path = vec![
-            format!("GG"),
-            format!("AC"),
-            format!("GA"),
-            format!("CT")
-        ];
+        let path = vec![format!("GG"), format!("AC"), format!("GA"), format!("CT")];
         assert_eq!(string_reconstruction(&path)?, "GGACT");
         Ok(())
     }
@@ -136,7 +132,7 @@ mod tests {
             format!("ACG"),
             format!("ACT"),
             format!("CGA"),
-            format!("GAA")
+            format!("GAA"),
         ];
         assert_eq!(string_reconstruction(&path)?, "AACGAACT");
         Ok(())
@@ -151,7 +147,7 @@ mod tests {
             format!("ACTC"),
             format!("CCTC"),
             format!("CCTA"),
-            format!("TACT")
+            format!("TACT"),
         ];
         assert_eq!(string_reconstruction(&path)?, "CCTACTCCTC");
         Ok(())
@@ -168,7 +164,7 @@ mod tests {
             format!("CCG"),
             format!("CCC"),
             format!("CCC"),
-            format!("CCC")
+            format!("CCC"),
         ];
         assert_eq!(string_reconstruction(&path)?, "TCCCCCCCCCG");
         Ok(())
@@ -180,7 +176,7 @@ mod tests {
             format!("ACG"),
             format!("CGT"),
             format!("GTA"),
-            format!("TAC")
+            format!("TAC"),
         ];
         assert_eq!(string_reconstruction(&path)?, "ACGTAC");
         Ok(())

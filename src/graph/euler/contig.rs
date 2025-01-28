@@ -1,12 +1,13 @@
-use std::collections::HashSet;
-use std::error::Error;
 use crate::graph::debruijn::debruijn_kmers;
 use crate::graph::graph::{Contig, Graph};
 use crate::graph::reconstruction::genome_path;
-
+use std::collections::HashSet;
+use std::error::Error;
 
 pub fn maximal_non_branching_paths<T>(graph: &Graph<T>) -> Result<Vec<Contig<T>>, Box<dyn Error>>
-    where T: Clone + Eq + std::hash::Hash {
+where
+    T: Clone + Eq + std::hash::Hash,
+{
     let mut paths: Vec<Contig<T>> = Vec::new();
     let mut visited = HashSet::new();
 
@@ -19,8 +20,11 @@ pub fn maximal_non_branching_paths<T>(graph: &Graph<T>) -> Result<Vec<Contig<T>>
 }
 
 fn is_one_in_out<T>(graph: &Graph<T>, node: &T) -> Result<bool, Box<dyn Error>>
-    where T: Clone + Eq + std::hash::Hash {
-    let in_degree = graph.values()
+where
+    T: Clone + Eq + std::hash::Hash,
+{
+    let in_degree = graph
+        .values()
         .flat_map(|edges| edges.iter())
         .filter(|&n| n == node)
         .count();
@@ -28,10 +32,14 @@ fn is_one_in_out<T>(graph: &Graph<T>, node: &T) -> Result<bool, Box<dyn Error>>
     Ok(in_degree == 1 && out_degree == 1)
 }
 
-fn non_isolate_paths<T>(graph: &Graph<T>,
-                        paths: &mut Vec<Contig<T>>,
-                        visited: &mut HashSet<T>) -> Result<(), Box<dyn Error>>
-    where T: Clone + Eq + std::hash::Hash {
+fn non_isolate_paths<T>(
+    graph: &Graph<T>,
+    paths: &mut Vec<Contig<T>>,
+    visited: &mut HashSet<T>,
+) -> Result<(), Box<dyn Error>>
+where
+    T: Clone + Eq + std::hash::Hash,
+{
     // Process non-isolate paths
     for start_node in graph.keys() {
         if !is_one_in_out(graph, start_node)? {
@@ -60,10 +68,14 @@ fn non_isolate_paths<T>(graph: &Graph<T>,
     Ok(())
 }
 
-fn isolate_cycles<T>(graph: &Graph<T>,
-                  paths: &mut Vec<Contig<T>>,
-                  visited: &mut HashSet<T>) -> Result<(), Box<dyn Error>>
-    where T: Clone + Eq + std::hash::Hash{
+fn isolate_cycles<T>(
+    graph: &Graph<T>,
+    paths: &mut Vec<Contig<T>>,
+    visited: &mut HashSet<T>,
+) -> Result<(), Box<dyn Error>>
+where
+    T: Clone + Eq + std::hash::Hash,
+{
     // Find isolated cycles
     for node in graph.keys() {
         if !visited.contains(node) {
@@ -96,33 +108,44 @@ fn isolate_cycles<T>(graph: &Graph<T>,
 
 pub fn contig_generation(patterns: &[String]) -> Result<Vec<String>, Box<dyn Error>> {
     let graph = debruijn_kmers(patterns)?;
-    let mut contigs = maximal_non_branching_paths(&graph)?.iter()
-        .map(|contig| genome_path(contig)).collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+    let mut contigs = maximal_non_branching_paths(&graph)?
+        .iter()
+        .map(|contig| genome_path(contig))
+        .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
     contigs.sort();
     Ok(contigs)
 }
 
 mod tests {
-    use std::error::Error;
     use crate::graph::euler::contig::contig_generation;
+    use std::error::Error;
 
     #[test]
     fn test_contig_generation1() -> Result<(), Box<dyn Error>> {
         let path = vec![
-            format!("ATG"), format!("ATG"),
-            format!("TGT"), format!("TGG"),
-            format!("CAT"), format!("GGA"),
-            format!("GAT"), format!("AGA"),
+            format!("ATG"),
+            format!("ATG"),
+            format!("TGT"),
+            format!("TGG"),
+            format!("CAT"),
+            format!("GGA"),
+            format!("GAT"),
+            format!("AGA"),
         ];
-        assert_eq!(contig_generation(&path)?, vec!["AGA", "ATG", "ATG", "CAT", "GAT", "TGGA", "TGT"]);
+        assert_eq!(
+            contig_generation(&path)?,
+            vec!["AGA", "ATG", "ATG", "CAT", "GAT", "TGGA", "TGT"]
+        );
         Ok(())
     }
 
     #[test]
     fn test_contig_generation2() -> Result<(), Box<dyn Error>> {
         let path = vec![
-            format!("GTT"), format!("TTA"),
-            format!("TAC"), format!("TTT"),
+            format!("GTT"),
+            format!("TTA"),
+            format!("TAC"),
+            format!("TTT"),
         ];
         assert_eq!(contig_generation(&path)?, vec!["GTT", "TTAC", "TTT"]);
         Ok(())
@@ -130,10 +153,7 @@ mod tests {
 
     #[test]
     fn test_contig_generation3() -> Result<(), Box<dyn Error>> {
-        let path = vec![
-            format!("AG"), format!("GT"),
-            format!("GC"), format!("TA")
-        ];
+        let path = vec![format!("AG"), format!("GT"), format!("GC"), format!("TA")];
         assert_eq!(contig_generation(&path)?, vec!["GC", "GTAG"]);
         Ok(())
     }
@@ -141,22 +161,32 @@ mod tests {
     #[test]
     fn test_contig_generation4() -> Result<(), Box<dyn Error>> {
         let path = vec![
-            format!("GAGA"), format!("AGAG"),
-            format!("AACG"), format!("ACGT"),
-            format!("ACGG")
+            format!("GAGA"),
+            format!("AGAG"),
+            format!("AACG"),
+            format!("ACGT"),
+            format!("ACGG"),
         ];
-        assert_eq!(contig_generation(&path)?, vec!["AACG", "ACGG", "ACGT", "GAGAG"]);
+        assert_eq!(
+            contig_generation(&path)?,
+            vec!["AACG", "ACGG", "ACGT", "GAGAG"]
+        );
         Ok(())
     }
 
     #[test]
     fn test_contig_generation5() -> Result<(), Box<dyn Error>> {
         let path = vec![
-            format!("TGAG"), format!("GACT"),
-            format!("CTGA"), format!("ACTG"),
-            format!("CTGA")
+            format!("TGAG"),
+            format!("GACT"),
+            format!("CTGA"),
+            format!("ACTG"),
+            format!("CTGA"),
         ];
-        assert_eq!(contig_generation(&path)?, vec!["CTGA", "CTGA", "GACTG", "TGAG"]);
+        assert_eq!(
+            contig_generation(&path)?,
+            vec!["CTGA", "CTGA", "GACTG", "TGAG"]
+        );
         Ok(())
     }
 }
