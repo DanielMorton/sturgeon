@@ -47,14 +47,9 @@ fn non_isolate_paths<T>(graph: &Graph<T>,
                     while is_one_in_out(graph, current)? {
                         visited.insert(current.clone());
                         if let Some(next_edges) = graph.get(current) {
-                            if next_edges.is_empty() {
-                                break;
-                            }
                             let next = &next_edges[0];
                             contig.push(next.clone());
                             current = next;
-                        } else {
-                            break;
                         }
                     }
                     paths.push(contig);
