@@ -4,3 +4,4 @@ mod kmer;
 mod overlap;
 mod reconstruction;
 mod euler;
+mod graph;

@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::error::Error;
 use crate::graph::err::EmptyGraphError;
+use crate::graph::graph::Graph;
 
-pub fn eulerian_path<T>(graph: &HashMap<T, Vec<T>>) -> Result<Vec<T>, Box<dyn Error>>
+pub fn eulerian_path<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
     where T: Clone + Eq + std::hash::Hash,
 {
     if graph.is_empty() {
@@ -34,7 +35,7 @@ pub fn eulerian_path<T>(graph: &HashMap<T, Vec<T>>) -> Result<Vec<T>, Box<dyn Er
     Ok(path)
 }
 
-fn find_start<T>(graph: &HashMap<T, Vec<T>>) -> Result<T, Box<dyn Error>>
+fn find_start<T>(graph: &Graph<T>) -> Result<T, Box<dyn Error>>
     where
         T: Clone + Eq + std::hash::Hash,
 {

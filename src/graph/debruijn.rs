@@ -1,11 +1,11 @@
-use std::collections::HashMap;
 use std::error::Error;
+use crate::graph::graph::Graph;
 
 pub fn debruijn_string(
     text: &str,
     kmer_length: usize,
-) -> Result<HashMap<String, Vec<String>>, Box<dyn Error>> {
-    let mut graph = HashMap::new();
+) -> Result<Graph<String>, Box<dyn Error>> {
+    let mut graph = Graph::new();
 
     for i in 0..=text.len() - kmer_length {
         let pattern = &text[i..i+kmer_length];
@@ -24,21 +24,58 @@ pub fn debruijn_string(
     Ok(graph)
 }
 
-pub fn debruijn_kmers(patterns: &[String]) -> Result<HashMap<String, Vec<String>>, Box<dyn Error>> {
+pub fn debruijn_kmers(patterns: &[String]) -> Result<Graph<String>, Box<dyn Error>> {
     let p = patterns[0].len();
-    let mut graph = HashMap::new();
+    let mut graph = Graph::new();
 
     for pattern in patterns {
         graph.entry(pattern[..p-1].to_owned())
             .or_insert_with(Vec::new)
             .push(pattern[1..].to_owned());
     }
-
-    for value in graph.values_mut() {
-        value.sort();
-    }
+    add_terminal_nodes(&mut graph)?;
+    sort_values(&mut graph)?;
 
     Ok(graph)
+}
+
+fn de_bruijn_paired_kmers(paired_reads: &[(String, String)]) -> Result<Graph<String>, Box<dyn Error>> {
+    let p = paired_reads[0].0.len();
+    let mut graph = Graph::new();
+
+    for pattern in paired_reads {
+        let key = format!("{}|{}", &pattern.0[..p -1], &pattern.1[..p -1]);
+        let value = format!("{}|{}", &pattern.0[1..], &pattern.1[1..]);
+        graph.entry(key)
+            .or_insert_with(Vec::new)
+            .push(value);
+    }
+    add_terminal_nodes(&mut graph)?;
+    sort_values(&mut graph)?;
+
+    Ok(graph)
+}
+
+fn add_terminal_nodes(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
+    // First collect all values that need to be added
+    let mut nodes_to_add = graph.values()
+        .flat_map(|values| values.clone())
+        .collect::<Vec<_>>();
+    nodes_to_add.sort();
+    nodes_to_add.dedup();
+
+    // Then add the new nodes to the graph
+    for value in nodes_to_add {
+        graph.entry(value).or_insert_with(Vec::new);
+    }
+    Ok(())
+}
+
+fn sort_values(graph:&mut Graph<String>) -> Result<(), Box<dyn Error>> {
+    for values in graph.values_mut() {
+        values.sort();
+    }
+    Ok(())
 }
 
 mod tests {
@@ -139,7 +176,10 @@ mod tests {
             format!("TGACG")
         ];
         let ans = HashMap::from([
+            (format!("AGCT"), vec![]),
+            (format!("CAAG"), vec![]),
             (format!("CAGC"), vec![format!("AGCT")]),
+            (format!("GACG"), vec![]),
             (format!("GCAA"), vec![format!("CAAG")]),
             (format!("TGAC"), vec![format!("GACG")])
         ]);
@@ -156,7 +196,9 @@ mod tests {
         ];
         let ans = HashMap::from([
             (format!("AGG"), vec![format!("GGC"), format!("GGT")]),
-            (format!("GGC"), vec![format!("GCT")])
+            (format!("GCT"), vec![]),
+            (format!("GGC"), vec![format!("GCT")]),
+            (format!("GGT"), vec![])
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())
@@ -173,7 +215,10 @@ mod tests {
         ];
         let ans = HashMap::from([
             (format!("AAG"), vec![format!("AGT")]),
+            (format!("AGT"), vec![]),
+            (format!("GCT"), vec![]),
             (format!("GGC"), vec![format!("GCT"), format!("GCT")]),
+            (format!("TCT"), vec![]),
             (format!("TTC"), vec![format!("TCT"), format!("TCT")])
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
@@ -191,7 +236,8 @@ mod tests {
             format!("CA")
         ];
         let ans = HashMap::from([
-            (format!("C"), vec![format!("A"), format!("A"), format!("A"), format!("A"), format!("A"), format!("C")])
+            (format!("C"), vec![format!("A"), format!("A"), format!("A"), format!("A"), format!("A"), format!("C")]),
+            (format!("A"), vec![])
         ]);
         assert_eq!(debruijn_kmers(&patterns)?, ans);
         Ok(())

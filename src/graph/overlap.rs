@@ -1,7 +1,8 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use crate::graph::graph::Graph;
 
-fn overlap_graph(patterns: &[String]) -> Result<HashMap<String, Vec<String>>, Box<dyn Error>> {
+fn overlap_graph(patterns: &[String]) -> Result<Graph<String>, Box<dyn Error>> {
     let p = patterns[0].len();
 
     // Create initial graph structure using HashMaps
@@ -20,7 +21,7 @@ fn overlap_graph(patterns: &[String]) -> Result<HashMap<String, Vec<String>>, Bo
         }
     }
     // Convert to final edge list format
-    let mut kmer_graph = HashMap::new();
+    let mut kmer_graph = Graph::new();
     for (key, value) in graph {
         if !value.is_empty() {
             let mut edges = value.into_iter().map(|s| s.to_owned()).collect::<Vec<_>>();

@@ -1,5 +1,5 @@
 mod cycle;
 mod path;
+mod contig;
 
-pub(super) use cycle::eulerian_cycle;
 pub(super) use path::eulerian_path;

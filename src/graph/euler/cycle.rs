@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use std::error::Error;
 use crate::graph::err::EmptyGraphError;
+use crate::graph::graph::Graph;
 
-pub fn eulerian_cycle<T>(graph: &HashMap<T, Vec<T>>) -> Result<Vec<T>, Box<dyn Error>>
+pub fn eulerian_cycle<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
     where T: Clone + Eq + std::hash::Hash {
     let mut stack = Vec::new();
     let mut cycle = Vec::new();
