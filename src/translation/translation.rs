@@ -27,14 +27,14 @@ pub fn translate_rna_code(pattern: &str) -> Result<String, Box<dyn Error>> {
 }
 
 mod tests {
-    use crate::translation::translation::translate_rna;
     use std::error::Error;
+    use crate::translation::translate_rna_code;
 
     #[test]
     fn test_debruijn_string1() -> Result<(), Box<dyn Error>> {
         let rna = format!("AUGGCCAUGGCGCCCAGAACUGAGAUCAAUAGUACCCGUAUUAACGGGUGA");
 
-        assert_eq!(translate_rna(&rna)?, "MAMAPRTEINSTRING");
+        assert_eq!(translate_rna_code(&rna)?, "MAMAPRTEINSTRING");
         Ok(())
     }
 }
