@@ -11,8 +11,8 @@ pub fn translate_rna(
 
     while i + 3 <= pattern.len() {
         let codon = &pattern[i..i + 3];
-        if let Some(&ref amino_acid) = genetic_code.get(codon) {
-            peptide.push_str(&amino_acid);
+        if let Some(amino_acid) = genetic_code.get(codon) {
+            peptide.push_str(amino_acid);
         } else {
             break;
         }

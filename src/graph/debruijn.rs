@@ -63,7 +63,7 @@ fn add_terminal_nodes(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
 
     // Then add the new nodes to the graph
     for value in nodes_to_add {
-        graph.entry(value).or_insert_with(Vec::new);
+        graph.entry(value).or_default();
     }
     Ok(())
 }

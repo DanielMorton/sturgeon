@@ -4,7 +4,7 @@ use crate::graph::euler::eulerian_path;
 use std::error::Error;
 
 fn string_reconstruction(patterns: &[String]) -> Result<String, Box<dyn Error>> {
-    let graph = debruijn_kmers(&patterns)?;
+    let graph = debruijn_kmers(patterns)?;
     let path = eulerian_path(&graph)?;
     let genome = genome_path(&path)?;
     Ok(genome)
@@ -46,7 +46,7 @@ fn genome_pair_path(path: &[String], gap: usize) -> Result<String, Box<dyn Error
         tail.push_str(&p[1][k - 1..k]);
     }
 
-    if &head[k + gap..] != &tail[..tail.len() - k - gap] {
+    if head[k + gap..] != tail[..tail.len() - k - gap] {
         let mut new_path = path[1..].to_vec();
         new_path.push(path[0].clone());
         return genome_pair_path(&new_path, gap);

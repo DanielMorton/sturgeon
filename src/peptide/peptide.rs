@@ -93,7 +93,7 @@ fn is_consistent(
     let peptide_spectrum = get_linspectrum(peptide)?;
 
     // Count frequencies in both spectra
-    let mut peptide_freq = vec_to_count(&peptide_spectrum)?;
+    let peptide_freq = vec_to_count(&peptide_spectrum)?;
 
     // Check if peptide spectrum frequencies don't exceed target frequencies
     for (&mass, &count) in peptide_freq.iter() {
@@ -117,7 +117,7 @@ pub fn cyclopeptide_sequencing(
     candidate_peptides.insert(Peptide::new());
     let mut final_peptides = Vec::new();
     let target_mass = parent_mass(spectrum)?;
-    let target_freq = vec_to_count(&spectrum)?;
+    let target_freq = vec_to_count(spectrum)?;
 
     while !candidate_peptides.is_empty() {
         // Expand candidates

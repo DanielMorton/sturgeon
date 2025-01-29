@@ -11,7 +11,7 @@ pub fn median_string(dna: &[String], kmer_length: usize) -> Result<String, Box<d
     let mut median = kmers[0].clone();
 
     for kmer in &kmers {
-        let total_distance = score_kmer(&dna, kmer)?;
+        let total_distance = score_kmer(dna, kmer)?;
 
         if total_distance < min_distance {
             median = kmer.clone();
@@ -27,7 +27,7 @@ pub fn median_list(dna: &[String], kmer_length: usize) -> Result<Vec<String>, Bo
 
     let kmer_scores = kmers
         .iter()
-        .map(|kmer| score_kmer(&dna, kmer))
+        .map(|kmer| score_kmer(dna, kmer))
         .collect::<Result<Vec<usize>, _>>()?;
 
     let min_kmer_score = *kmer_scores.iter().min().unwrap();

@@ -49,7 +49,7 @@ pub fn run_median(args: DosRArgs) -> Result<(), Box<dyn Error>> {
         (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
     let dna = fs::read_to_string(input_file)?
         .split('\n')
-        .filter(|s| s.len() > 0)
+        .filter(|s| !s.is_empty())
         .map(|s| s.to_owned())
         .collect::<Vec<_>>();
     for k in min_kmer_length..=max_kmer_length {
@@ -68,7 +68,7 @@ pub fn run_random(args: DosRArgs) -> Result<(), Box<dyn Error>> {
         (args.get_min_kmer_length()?, args.get_max_kmer_length()?);
     let dna = fs::read_to_string(input_file)?
         .split('\n')
-        .filter(|s| s.len() > 0)
+        .filter(|s| !s.is_empty())
         .map(|s| s.to_owned())
         .collect::<Vec<_>>();
     for k in min_kmer_length..=max_kmer_length {

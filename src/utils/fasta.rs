@@ -33,7 +33,7 @@ impl Fasta {
 
     pub(crate) fn read_file(file: impl AsRef<Path>) -> Result<Self, std::io::Error> {
         let content = read_to_string(file)?;
-        Self::read(&content.trim()).map_err(|_| {
+        Self::read(content.trim()).map_err(|_| {
             std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid FASTA format")
         })
     }

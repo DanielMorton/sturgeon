@@ -11,7 +11,7 @@ where
         return Err(Box::new(EmptyGraphError));
     }
     // Find the starting node (the one with a positive balance)
-    let start = find_start(&graph)?;
+    let start = find_start(graph)?;
 
     // Perform the Eulerian path algorithm
     let mut stack = vec![start];

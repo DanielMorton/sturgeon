@@ -30,7 +30,7 @@ pub fn frequent_words(
     }
 
     frequencies
-        .into_iter()
+        .iter()
         .filter(|(_, &count)| count >= min_freq)
         .map(|(pattern, _)| pattern.clone())
         .collect()

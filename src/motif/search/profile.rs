@@ -21,9 +21,9 @@ pub fn motif_to_profile(
 
     let motif_count = motifs.len() as f64;
     // Normalize
-    for col in 0..cols {
-        for row in 0..4 {
-            profile[row][col] /= motif_count;
+    for row in profile.iter_mut() {
+        for p in row.iter_mut() {
+            *p /= motif_count;
         }
     }
 
@@ -33,7 +33,7 @@ pub fn motif_to_profile(
 pub fn score_motifs(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<usize, Box<dyn Error>> {
     let consensus = get_consensus(motifs, profile)?;
 
-    score_consensus(&motifs, &consensus)
+    score_consensus(motifs, &consensus)
 }
 
 pub fn get_consensus(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<String, Box<dyn Error>> {
@@ -59,7 +59,7 @@ pub fn get_consensus(motifs: &[String], profile: &[Vec<f64>; 4]) -> Result<Strin
 pub fn score_consensus(motifs: &[String], consensus: &str) -> Result<usize, Box<dyn Error>> {
     Ok(motifs
         .iter()
-        .map(|motif| hamming_distance(motif, &consensus))
+        .map(|motif| hamming_distance(motif, consensus))
         .collect::<Result<Vec<_>, _>>()?
         .iter()
         .sum())
