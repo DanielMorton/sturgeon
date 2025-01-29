@@ -1,7 +1,7 @@
-use std::error::Error;
 use crate::translation::codon::read_codon;
 use crate::translation::translation::translate_rna;
 use crate::utils::{dna_complement, dna_to_rna};
+use std::error::Error;
 
 fn find_peptide_encodings(text: &str, peptide: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let genetic_code = read_codon()?;
@@ -31,15 +31,18 @@ fn find_peptide_encodings(text: &str, peptide: &str) -> Result<Vec<String>, Box<
 }
 
 mod tests {
-    use std::error::Error;
     use crate::translation::peptide::find_peptide_encodings;
+    use std::error::Error;
 
     #[test]
     fn test_debruijn_string1() -> Result<(), Box<dyn Error>> {
         let dna = "ATGGCCATGGCCCCCAGAACTGAGATCAATAGTACCCGTATTAACGGGTGA";
         let peptide = "MA";
 
-        assert_eq!(find_peptide_encodings(dna, peptide)?, vec!["ATGGCC", "GGCCAT", "ATGGCC"]);
+        assert_eq!(
+            find_peptide_encodings(dna, peptide)?,
+            vec!["ATGGCC", "GGCCAT", "ATGGCC"]
+        );
         Ok(())
     }
 }

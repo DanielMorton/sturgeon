@@ -27,8 +27,8 @@ pub fn translate_rna_code(pattern: &str) -> Result<String, Box<dyn Error>> {
 }
 
 mod tests {
-    use std::error::Error;
     use crate::translation::translate_rna_code;
+    use std::error::Error;
 
     #[test]
     fn test_debruijn_string1() -> Result<(), Box<dyn Error>> {

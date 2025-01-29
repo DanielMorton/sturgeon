@@ -1,63 +1,150 @@
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
-pub fn get_subpeptides(peptide: &str) -> Result<Vec<String>, Box<dyn Error>> {
-    let mut subpeptides = vec![String::new()];  // Empty string for mass 0
-    let doubled = peptide.repeat(2);
-
-    // Get all possible subpeptides of different lengths
-    for length in 1..=peptide.len()-1 {
-        for start in 0..peptide.len() {
-            let subpeptide = doubled[start..start + length].to_owned();
-            subpeptides.push(subpeptide);
-        }
-    }
-    subpeptides.push(peptide.to_owned());
-    Ok(subpeptides)
+#[derive(Clone, Debug, Eq, PartialEq, Hash)]
+struct Peptide {
+    sequence: Vec<usize>,
 }
 
-fn count_peptides(target_mass: usize, aa_masses: &[usize]) -> Result<usize, Box<dyn Error>> {
-    if target_mass <= 0 {
-        return panic!("Target mass must be positive");
+impl Peptide {
+    fn new() -> Self {
+        Peptide {
+            sequence: Vec::new(),
+        }
     }
 
-    let min_mass = *aa_masses.iter().min().unwrap();
-
-    // If target mass is smaller than smallest amino acid mass
-    if target_mass < min_mass {
-        return panic!("Target mass must be positive");
+    fn from(sequence: &[usize]) -> Self {
+        Peptide {
+            sequence: sequence.to_vec(),
+        }
     }
 
-    // dp[i] represents number of peptides with mass i
-    let mut dp = vec![0; (target_mass + 1) as usize];
-    dp[0] = 1; // Base case: empty peptide (mass 0) counts as 1 way
+    fn len(&self) -> usize {
+        self.sequence.len()
+    }
 
-    // For each possible mass
-    for current_mass in 1..=target_mass {
-        // Try adding each amino acid
-        for &amino_mass in aa_masses {
-            // If we can add this amino acid without exceeding target mass
-            if amino_mass <= current_mass {
-                let prev_mass = (current_mass - amino_mass) as usize;
-                dp[current_mass as usize] += dp[prev_mass];
+    fn mass(&self) -> usize {
+        self.sequence.iter().sum()
+    }
+
+    fn to_string(&self) -> String {
+        self.sequence
+            .iter()
+            .map(|m| m.to_string())
+            .collect::<Vec<_>>()
+            .join("-")
+    }
+}
+
+fn expand(
+    peptides: &HashSet<Peptide>,
+    amino_masses: &[usize],
+) -> Result<HashSet<Peptide>, Box<dyn Error>> {
+    let mut expanded = HashSet::new();
+
+    for peptide in peptides {
+        for &mass in amino_masses {
+            let mut new_peptide = peptide.clone();
+            new_peptide.sequence.push(mass);
+            expanded.insert(new_peptide);
+        }
+    }
+    Ok(expanded)
+}
+
+fn get_cyclospectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
+    let mut spectrum = vec![0]; // Start with mass 0
+
+    // Double the sequence for cyclic subpeptides
+    let doubled =
+        Peptide::from(&[peptide.sequence.as_slice(), peptide.sequence.as_slice()].concat());
+
+    // Generate all possible subpeptides
+    for len in 1..peptide.len() {
+        for start in 0..peptide.len() {
+            let subpeptide = doubled.sequence[start..start + len].to_vec();
+            spectrum.push(subpeptide.iter().sum());
+        }
+    }
+    spectrum.push(peptide.mass());
+    spectrum.sort();
+    Ok(spectrum)
+}
+
+fn is_consistent(peptide: &Peptide, target_spectrum: &[usize]) -> Result<bool, Box<dyn Error>> {
+    let peptide_spectrum = get_cyclospectrum(peptide)?;
+
+    // Count frequencies in both spectra
+    let mut target_freq = HashMap::new();
+    let mut peptide_freq = HashMap::new();
+
+    for &mass in target_spectrum {
+        *target_freq.entry(mass).or_insert(0) += 1;
+    }
+
+    for &mass in &peptide_spectrum {
+        *peptide_freq.entry(mass).or_insert(0) += 1;
+    }
+
+    // Check if peptide spectrum frequencies don't exceed target frequencies
+    for (&mass, &count) in peptide_freq.iter() {
+        if count > *target_freq.get(&mass).unwrap_or(&0) {
+            return Ok(false);
+        }
+    }
+
+    Ok(true)
+}
+
+fn parent_mass(spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
+    Ok(*spectrum.iter().max().unwrap())
+}
+
+fn cyclopeptide_sequencing(
+    spectrum: &[usize],
+    amino_masses: &[usize],
+) -> Result<Vec<String>, Box<dyn Error>> {
+    let mut candidate_peptides = HashSet::new();
+    candidate_peptides.insert(Peptide::new());
+    let mut final_peptides = Vec::new();
+    let target_mass = parent_mass(spectrum)?;
+
+    while !candidate_peptides.is_empty() {
+        // Expand candidates
+        let candidates = expand(&candidate_peptides, amino_masses)?;
+        candidate_peptides.clear();
+
+        for peptide in candidates {
+            let mass = peptide.mass();
+            if mass == target_mass {
+                if get_cyclospectrum(&peptide)? == spectrum {
+                    final_peptides.push(peptide.to_string());
+                }
+            } else if mass < target_mass && is_consistent(&peptide, spectrum)? {
+                candidate_peptides.insert(peptide);
             }
         }
     }
-
-    Ok(dp[target_mass])
+    Ok(final_peptides)
 }
 
 mod tests {
-    use std::collections::HashSet;
     use std::error::Error;
-    use crate::peptide::mass::read_masses;
-    use crate::peptide::peptide::count_peptides;
+    use crate::peptide::mass::make_mass_vector;
+    use crate::peptide::peptide::cyclopeptide_sequencing;
 
     #[test]
-    fn test_debruijn_string1() -> Result<(), Box<dyn Error>> {
-        let mass = 1024;
-        let masses: Vec<_> = read_masses()?.values().copied().collect::<HashSet<_>>().into_iter().collect();
-
-        assert_eq!(count_peptides(mass, &masses)?, 14712706211);
+    fn test_cyclopeptide_sequencing1() -> Result<(), Box<dyn Error>> {
+        let spectrum = vec![0, 113, 128, 186, 241, 299, 314, 427];
+        let mut ans = vec!["186-128-113", "186-113-128", "128-186-113", "128-113-186", "113-186-128", "113-128-186"];
+        ans.sort();
+        let amino_masses = make_mass_vector()?;
+        let  mut cyclo = cyclopeptide_sequencing(&spectrum, &amino_masses)?;
+        cyclo.sort();
+        assert_eq!(
+            cyclo,
+            ans
+        );
         Ok(())
     }
 }

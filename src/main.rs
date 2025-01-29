@@ -8,10 +8,10 @@ mod dosr;
 mod graph;
 mod motif;
 mod ori;
+mod peptide;
 mod translate;
 mod translation;
 mod utils;
-mod peptide;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
