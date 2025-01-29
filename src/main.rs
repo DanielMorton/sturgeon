@@ -1,8 +1,11 @@
+#![allow(dead_code)]
+
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
+use crate::cyclo::{CycloArgs, run_cyclo};
 
 mod dosr;
 mod graph;
@@ -12,6 +15,7 @@ mod peptide;
 mod translate;
 mod translation;
 mod utils;
+mod cyclo;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -22,6 +26,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    #[command(name="cyclo-sequence")]
+    CyclopeptideSequencing(CycloArgs),
     #[command(name = "dosr-median")]
     DosRMedian(DosRArgs),
     #[command(name = "dosr-random")]
@@ -35,9 +41,10 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match cli.command {
-        Commands::Ori(args) => run_ori(args),
+        Commands::CyclopeptideSequencing(args) => run_cyclo(args),
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),
+        Commands::Ori(args) => run_ori(args),
         Commands::Translate(args) => run_translation(args),
     }
 }

@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use crate::utils::vec_to_count;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct Peptide {
@@ -71,20 +72,25 @@ fn get_cyclospectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(spectrum)
 }
 
-fn is_consistent(peptide: &Peptide, target_spectrum: &[usize]) -> Result<bool, Box<dyn Error>> {
-    let peptide_spectrum = get_cyclospectrum(peptide)?;
+fn get_linspectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
+    let mut spectrum = vec![0]; // Start with mass 0
+
+    // Generate all possible subpeptides
+    for len in 1..peptide.len() {
+        for start in 0..=peptide.len() - len {
+            let subpeptide = peptide.sequence[start..start + len].to_vec();
+            spectrum.push(subpeptide.iter().sum());
+        }
+    }
+    spectrum.sort();
+    Ok(spectrum)
+}
+
+fn is_consistent(peptide: &Peptide, target_freq: &HashMap<usize, usize>) -> Result<bool, Box<dyn Error>> {
+    let peptide_spectrum = get_linspectrum(peptide)?;
 
     // Count frequencies in both spectra
-    let mut target_freq = HashMap::new();
-    let mut peptide_freq = HashMap::new();
-
-    for &mass in target_spectrum {
-        *target_freq.entry(mass).or_insert(0) += 1;
-    }
-
-    for &mass in &peptide_spectrum {
-        *peptide_freq.entry(mass).or_insert(0) += 1;
-    }
+    let mut peptide_freq = vec_to_count(&peptide_spectrum)?;
 
     // Check if peptide spectrum frequencies don't exceed target frequencies
     for (&mass, &count) in peptide_freq.iter() {
@@ -100,7 +106,7 @@ fn parent_mass(spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
     Ok(*spectrum.iter().max().unwrap())
 }
 
-fn cyclopeptide_sequencing(
+pub fn cyclopeptide_sequencing(
     spectrum: &[usize],
     amino_masses: &[usize],
 ) -> Result<Vec<String>, Box<dyn Error>> {
@@ -108,6 +114,7 @@ fn cyclopeptide_sequencing(
     candidate_peptides.insert(Peptide::new());
     let mut final_peptides = Vec::new();
     let target_mass = parent_mass(spectrum)?;
+    let target_freq = vec_to_count(&spectrum)?;
 
     while !candidate_peptides.is_empty() {
         // Expand candidates
@@ -120,7 +127,7 @@ fn cyclopeptide_sequencing(
                 if get_cyclospectrum(&peptide)? == spectrum {
                     final_peptides.push(peptide.to_string());
                 }
-            } else if mass < target_mass && is_consistent(&peptide, spectrum)? {
+            } else if mass < target_mass && is_consistent(&peptide, &target_freq)? {
                 candidate_peptides.insert(peptide);
             }
         }

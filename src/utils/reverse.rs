@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use crate::utils::dna::DNA_COMPLEMENT_MAP;
 use crate::utils::rna::RNA_COMPLEMENT_MAP;
 use crate::utils::InvalidNucleotidePositionError;

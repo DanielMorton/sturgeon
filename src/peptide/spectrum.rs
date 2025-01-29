@@ -13,7 +13,6 @@ fn calculate_peptide_mass(
 pub fn generate_spectrum(peptide: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let masses = read_masses()?;
     let subpeptides = get_subpeptides(peptide)?;
-    println!("{:?}", subpeptides);
 
     // Calculate masses for each subpeptide
     let mut spectrum = subpeptides
@@ -31,7 +30,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_debruijn_string1() -> Result<(), Box<dyn Error>> {
+    fn test_generate_spectrum1() -> Result<(), Box<dyn Error>> {
         let peptide = "LEQN";
 
         assert_eq!(

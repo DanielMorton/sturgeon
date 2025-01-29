@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use std::error::Error;
 
 pub fn get_subpeptides(peptide: &str) -> Result<Vec<String>, Box<dyn Error>> {
