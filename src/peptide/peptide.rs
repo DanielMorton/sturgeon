@@ -1,6 +1,6 @@
+use crate::utils::vec_to_count;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use crate::utils::vec_to_count;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 struct Peptide {
@@ -86,7 +86,10 @@ fn get_linspectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
     Ok(spectrum)
 }
 
-fn is_consistent(peptide: &Peptide, target_freq: &HashMap<usize, usize>) -> Result<bool, Box<dyn Error>> {
+fn is_consistent(
+    peptide: &Peptide,
+    target_freq: &HashMap<usize, usize>,
+) -> Result<bool, Box<dyn Error>> {
     let peptide_spectrum = get_linspectrum(peptide)?;
 
     // Count frequencies in both spectra
@@ -136,22 +139,26 @@ pub fn cyclopeptide_sequencing(
 }
 
 mod tests {
-    use std::error::Error;
     use crate::peptide::mass::make_mass_vector;
     use crate::peptide::peptide::cyclopeptide_sequencing;
+    use std::error::Error;
 
     #[test]
     fn test_cyclopeptide_sequencing1() -> Result<(), Box<dyn Error>> {
         let spectrum = vec![0, 113, 128, 186, 241, 299, 314, 427];
-        let mut ans = vec!["186-128-113", "186-113-128", "128-186-113", "128-113-186", "113-186-128", "113-128-186"];
+        let mut ans = vec![
+            "186-128-113",
+            "186-113-128",
+            "128-186-113",
+            "128-113-186",
+            "113-186-128",
+            "113-128-186",
+        ];
         ans.sort();
         let amino_masses = make_mass_vector()?;
-        let  mut cyclo = cyclopeptide_sequencing(&spectrum, &amino_masses)?;
+        let mut cyclo = cyclopeptide_sequencing(&spectrum, &amino_masses)?;
         cyclo.sort();
-        assert_eq!(
-            cyclo,
-            ans
-        );
+        assert_eq!(cyclo, ans);
         Ok(())
     }
 }

@@ -1,12 +1,13 @@
 #![allow(dead_code)]
 
+use crate::cyclo::{run_cyclo, CycloArgs};
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
-use crate::cyclo::{CycloArgs, run_cyclo};
 
+mod cyclo;
 mod dosr;
 mod graph;
 mod motif;
@@ -15,7 +16,6 @@ mod peptide;
 mod translate;
 mod translation;
 mod utils;
-mod cyclo;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -26,7 +26,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    #[command(name="cyclo-sequence")]
+    #[command(name = "cyclo-sequence")]
     CyclopeptideSequencing(CycloArgs),
     #[command(name = "dosr-median")]
     DosRMedian(DosRArgs),
