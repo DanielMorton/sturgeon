@@ -1,6 +1,7 @@
 mod aa_peptide;
 mod mass;
 mod peptide;
+mod score;
 mod spectrum;
 
 pub(super) use mass::make_mass_vector;

@@ -3,37 +3,77 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
-struct Peptide {
-    sequence: Vec<usize>,
+pub struct Peptide {
+    pub(crate) sequence: Vec<usize>,
 }
 
 impl Peptide {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Peptide {
             sequence: Vec::new(),
         }
     }
 
-    fn from(sequence: &[usize]) -> Self {
+    pub fn from(sequence: &[usize]) -> Self {
         Peptide {
             sequence: sequence.to_vec(),
         }
     }
 
-    fn len(&self) -> usize {
+    pub fn from_string(text: &str, masses: &HashMap<char, usize>) -> Self {
+        let sequence = text
+            .chars()
+            .map(|c| *masses.get(&c).unwrap())
+            .collect::<Vec<_>>();
+        Peptide { sequence }
+    }
+
+    pub fn len(&self) -> usize {
         self.sequence.len()
     }
 
-    fn mass(&self) -> usize {
+    pub fn mass(&self) -> usize {
         self.sequence.iter().sum()
     }
 
-    fn to_string(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.sequence
             .iter()
             .map(|m| m.to_string())
             .collect::<Vec<_>>()
             .join("-")
+    }
+
+    pub fn get_cyclospectrum(&self) -> Result<Vec<usize>, Box<dyn Error>> {
+        let mut spectrum = vec![0]; // Start with mass 0
+
+        // Double the sequence for cyclic subpeptides
+        let doubled = Peptide::from(&[self.sequence.as_slice(), self.sequence.as_slice()].concat());
+
+        // Generate all possible subpeptides
+        for len in 1..self.len() {
+            for start in 0..self.len() {
+                let subpeptide = doubled.sequence[start..start + len].to_vec();
+                spectrum.push(subpeptide.iter().sum());
+            }
+        }
+        spectrum.push(self.mass());
+        spectrum.sort();
+        Ok(spectrum)
+    }
+
+    pub fn get_linspectrum(&self) -> Result<Vec<usize>, Box<dyn Error>> {
+        let mut spectrum = vec![0]; // Start with mass 0
+
+        // Generate all possible subpeptides
+        for len in 1..self.len() {
+            for start in 0..=self.len() - len {
+                let subpeptide = self.sequence[start..start + len].to_vec();
+                spectrum.push(subpeptide.iter().sum());
+            }
+        }
+        spectrum.sort();
+        Ok(spectrum)
     }
 }
 
@@ -53,44 +93,11 @@ fn expand(
     Ok(expanded)
 }
 
-fn get_cyclospectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut spectrum = vec![0]; // Start with mass 0
-
-    // Double the sequence for cyclic subpeptides
-    let doubled =
-        Peptide::from(&[peptide.sequence.as_slice(), peptide.sequence.as_slice()].concat());
-
-    // Generate all possible subpeptides
-    for len in 1..peptide.len() {
-        for start in 0..peptide.len() {
-            let subpeptide = doubled.sequence[start..start + len].to_vec();
-            spectrum.push(subpeptide.iter().sum());
-        }
-    }
-    spectrum.push(peptide.mass());
-    spectrum.sort();
-    Ok(spectrum)
-}
-
-fn get_linspectrum(peptide: &Peptide) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut spectrum = vec![0]; // Start with mass 0
-
-    // Generate all possible subpeptides
-    for len in 1..peptide.len() {
-        for start in 0..=peptide.len() - len {
-            let subpeptide = peptide.sequence[start..start + len].to_vec();
-            spectrum.push(subpeptide.iter().sum());
-        }
-    }
-    spectrum.sort();
-    Ok(spectrum)
-}
-
 fn is_consistent(
     peptide: &Peptide,
     target_freq: &HashMap<usize, usize>,
 ) -> Result<bool, Box<dyn Error>> {
-    let peptide_spectrum = get_linspectrum(peptide)?;
+    let peptide_spectrum = peptide.get_linspectrum()?;
 
     // Count frequencies in both spectra
     let peptide_freq = vec_to_count(&peptide_spectrum)?;
@@ -127,7 +134,7 @@ pub fn cyclopeptide_sequencing(
         for peptide in candidates {
             let mass = peptide.mass();
             if mass == target_mass {
-                if get_cyclospectrum(&peptide)? == spectrum {
+                if &peptide.get_cyclospectrum()? == spectrum {
                     final_peptides.push(peptide.to_string());
                 }
             } else if mass < target_mass && is_consistent(&peptide, &target_freq)? {

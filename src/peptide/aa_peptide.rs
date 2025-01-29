@@ -25,7 +25,7 @@ fn count_peptides(target_mass: usize, aa_masses: &[usize]) -> Result<usize, Box<
     }
 
     // dp[i] represents number of peptides with mass i
-    let mut dp = vec![0; (target_mass + 1)];
+    let mut dp = vec![0; target_mass + 1];
     dp[0] = 1; // Base case: empty peptide (mass 0) counts as 1 way
 
     // For each possible mass
@@ -34,7 +34,7 @@ fn count_peptides(target_mass: usize, aa_masses: &[usize]) -> Result<usize, Box<
         for &amino_mass in aa_masses {
             // If we can add this amino acid without exceeding target mass
             if amino_mass <= current_mass {
-                let prev_mass = (current_mass - amino_mass);
+                let prev_mass = current_mass - amino_mass;
                 dp[current_mass] += dp[prev_mass];
             }
         }

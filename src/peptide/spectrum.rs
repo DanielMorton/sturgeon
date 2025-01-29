@@ -1,5 +1,6 @@
 use crate::peptide::aa_peptide::get_subpeptides;
 use crate::peptide::mass::read_masses;
+use crate::peptide::peptide::Peptide;
 use std::collections::HashMap;
 use std::error::Error;
 
