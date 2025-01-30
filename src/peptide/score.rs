@@ -3,7 +3,7 @@ use crate::utils::vec_to_count;
 use std::cmp::min;
 use std::error::Error;
 
-fn score_cyclopeptide(peptide: &Peptide, spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
+pub fn score_cyclopeptide(peptide: &Peptide, spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
     // Get theoretical spectrum for the peptide
     let theoretical_spectrum = peptide.get_cyclospectrum()?;
 
