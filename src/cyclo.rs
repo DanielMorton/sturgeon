@@ -1,4 +1,4 @@
-use crate::peptide::{cyclopeptide_sequencing, leaderboard_cyclopeptide_sequencing, make_mass_vector};
+use crate::peptide::{cyclopeptide_sequencing, leaderboard_cyclopeptide_list, leaderboard_cyclopeptide_sequencing, make_mass_vector};
 use clap::Parser;
 use std::error::Error;
 use std::fs;
@@ -35,7 +35,9 @@ pub fn run_leader_cyclo(args: CycloArgs) -> Result<(), Box<dyn Error>> {
         .map(|m| m.parse::<usize>().unwrap())
         .collect::<Vec<_>>();
     let amino_masses = make_mass_vector()?;
-    let cyclo = leaderboard_cyclopeptide_sequencing(&spectrum, &amino_masses, n)?;
-    println!("{}", cyclo.to_string());
+    let cyclo = leaderboard_cyclopeptide_list(&spectrum, &amino_masses, n)?;
+    for c in cyclo {
+        println!("{}", c.to_string());
+    }
     Ok(())
 }

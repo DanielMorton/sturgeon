@@ -1,5 +1,5 @@
 use crate::peptide::peptide::{expand, parent_mass, Peptide};
-use crate::peptide::score::score_cyclopeptide;
+use crate::peptide::score::{score_cyclopeptide, score_linpeptide};
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -11,6 +11,7 @@ pub fn leaderboard_cyclopeptide_sequencing(
     let mut leaderboard = HashSet::new();
     leaderboard.insert(Peptide::new());
     let mut leader_peptide = Peptide::new();
+    let mut leader_score = 0;
     let target_mass = parent_mass(spectrum)?;
 
     while !leaderboard.is_empty() {
@@ -23,9 +24,9 @@ pub fn leaderboard_cyclopeptide_sequencing(
             let mass = peptide.mass();
             if mass == target_mass {
                 let score = score_cyclopeptide(peptide, spectrum)?;
-                let leader_score = score_cyclopeptide(&leader_peptide, spectrum)?;
                 if score > leader_score {
                     leader_peptide = peptide.clone();
+                    leader_score = score;
                 }
             } else if mass > target_mass {
                 to_remove.push(peptide.clone());
@@ -44,6 +45,54 @@ pub fn leaderboard_cyclopeptide_sequencing(
     Ok(leader_peptide)
 }
 
+pub fn leaderboard_cyclopeptide_list(
+    spectrum: &[usize],
+    amino_masses: &[usize],
+    n: usize,
+) -> Result<Vec<Peptide>, Box<dyn Error>> {
+    let mut leaderboard = HashSet::new();
+    leaderboard.insert(Peptide::new());
+    let mut leader_peptides = vec![];
+    let mut leader_score = 0;
+    let target_mass = parent_mass(spectrum)?;
+
+    while !leaderboard.is_empty() {
+        // Expand candidates
+        leaderboard = expand(&leaderboard, amino_masses)?;
+        let mut to_remove = Vec::new();
+
+        // Check each peptide
+        for peptide in leaderboard.iter() {
+            let mass = peptide.mass();
+            if mass == target_mass {
+                let score = score_cyclopeptide(peptide, spectrum)?;
+                if score > leader_score {
+                    leader_peptides.clear();
+                    leader_peptides.push(peptide.clone());
+                    leader_score = score;
+                } else if score == leader_score {
+                    leader_peptides.push(peptide.clone());
+                }
+            } else if mass > target_mass {
+                to_remove.push(peptide.clone());
+            }
+        }
+
+        // Remove peptides that exceed target mass
+        for peptide in to_remove {
+            leaderboard.remove(&peptide);
+        }
+
+        // Trim leaderboard to keep top N scoring peptides
+        leaderboard = trim(leaderboard, spectrum, n)?;
+    }
+    for (i, peptide) in leader_peptides.iter().enumerate() {
+        let score = score_cyclopeptide(peptide, spectrum)?;
+        println!("{} {} {}", i, peptide.to_string(), score);
+    }
+    Ok(leader_peptides)
+}
+
 fn trim(
     leaderboard: HashSet<Peptide>,
     spectrum: &[usize],
@@ -57,7 +106,7 @@ fn trim(
     let mut scored_peptides = leaderboard
         .into_iter()
         .map(|peptide| {
-            let score = score_cyclopeptide(&peptide, spectrum)?;
+            let score = score_linpeptide(&peptide, spectrum)?;
             Ok((peptide, score))
         })
         .collect::<Result<Vec<(_, _)>, Box<dyn Error>>>()?;
