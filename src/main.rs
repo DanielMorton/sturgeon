@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::cyclo::{run_cyclo, CycloArgs};
+use crate::cyclo::{run_cyclo, CycloArgs, run_leader_cyclo};
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
@@ -32,6 +32,8 @@ enum Commands {
     DosRMedian(DosRArgs),
     #[command(name = "dosr-random")]
     DosRRandom(DosRArgs),
+    #[command(name = "leaderboard")]
+    LeaderBoardCyclopeptideSequencing(CycloArgs),
     #[command(name = "ori")]
     Ori(OriArgs),
     #[command(name = "translate")]
@@ -44,6 +46,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::CyclopeptideSequencing(args) => run_cyclo(args),
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),
+        Commands::LeaderBoardCyclopeptideSequencing(args) => run_leader_cyclo(args),
         Commands::Ori(args) => run_ori(args),
         Commands::Translate(args) => run_translation(args),
     }

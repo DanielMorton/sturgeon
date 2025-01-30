@@ -77,7 +77,7 @@ impl Peptide {
     }
 }
 
-fn expand(
+pub fn expand(
     peptides: &HashSet<Peptide>,
     amino_masses: &[usize],
 ) -> Result<HashSet<Peptide>, Box<dyn Error>> {
@@ -112,7 +112,7 @@ fn is_consistent(
     Ok(true)
 }
 
-fn parent_mass(spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
+pub fn parent_mass(spectrum: &[usize]) -> Result<usize, Box<dyn Error>> {
     Ok(*spectrum.iter().max().unwrap())
 }
 

@@ -1,9 +1,11 @@
 use crate::motif::{
     get_consensus, median_list, motif_to_profile, randomized_motif_search, score_consensus,
 };
+use crate::utils::print_hms;
 use clap::{value_parser, Parser};
 use std::error::Error;
 use std::fs;
+use std::time::Instant;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -72,11 +74,13 @@ pub fn run_random(args: DosRArgs) -> Result<(), Box<dyn Error>> {
         .map(|s| s.to_owned())
         .collect::<Vec<_>>();
     for k in min_kmer_length..=max_kmer_length {
+        let start = Instant::now();
         let motifs = randomized_motif_search(&dna, k, num_iters)?;
         let profile = motif_to_profile(&motifs, Some(1.0))?;
         let consensus = get_consensus(&motifs, &profile)?;
         let score = score_consensus(&motifs, &consensus)?;
         println!("{} {} {}", k, consensus, score);
+        print_hms(&start);
     }
     Ok(())
 }
