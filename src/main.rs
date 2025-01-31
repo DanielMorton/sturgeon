@@ -16,6 +16,7 @@ mod peptide;
 mod translate;
 mod translation;
 mod utils;
+mod manhattan;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
