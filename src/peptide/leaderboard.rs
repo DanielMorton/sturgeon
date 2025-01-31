@@ -21,14 +21,14 @@ pub fn leaderboard_cyclopeptide_sequencing(
 
         // Check each peptide
         for peptide in leaderboard.iter() {
-            let mass = peptide.mass();
-            if mass == target_mass {
+            let peptide_mass = peptide.mass();
+            if peptide_mass == target_mass {
                 let score = score_cyclopeptide(peptide, spectrum)?;
                 if score > leader_score {
                     leader_peptide = peptide.clone();
                     leader_score = score;
                 }
-            } else if mass > target_mass {
+            } else if peptide_mass > target_mass {
                 to_remove.push(peptide.clone());
             }
         }
@@ -63,17 +63,18 @@ pub fn leaderboard_cyclopeptide_list(
 
         // Check each peptide
         for peptide in leaderboard.iter() {
-            let mass = peptide.mass();
-            if mass == target_mass {
-                let score = score_cyclopeptide(peptide, spectrum)?;
-                if score > leader_score {
+            let peptide_mass = peptide.mass();
+            if peptide_mass == target_mass {
+                let peptide_score = score_cyclopeptide(peptide, spectrum)?;
+                if peptide_score > leader_score {
                     leader_peptides.clear();
                     leader_peptides.push(peptide.clone());
-                    leader_score = score;
-                } else if score == leader_score {
+                    leader_score = peptide_score;
+                } else if peptide_score == leader_score {
                     leader_peptides.push(peptide.clone());
                 }
-            } else if mass > target_mass {
+                to_remove.push(peptide.clone());
+            } else if peptide_mass > target_mass {
                 to_remove.push(peptide.clone());
             }
         }
@@ -86,14 +87,11 @@ pub fn leaderboard_cyclopeptide_list(
         // Trim leaderboard to keep top N scoring peptides
         leaderboard = trim(leaderboard, spectrum, n)?;
     }
-    for (i, peptide) in leader_peptides.iter().enumerate() {
-        let score = score_cyclopeptide(peptide, spectrum)?;
-        println!("{} {} {}", i, peptide.to_string(), score);
-    }
+
     Ok(leader_peptides)
 }
 
-fn trim(
+pub fn trim(
     leaderboard: HashSet<Peptide>,
     spectrum: &[usize],
     n: usize,
@@ -126,10 +124,10 @@ fn trim(
 }
 
 mod tests {
-    use std::error::Error;
-    use crate::peptide::make_mass_vector;
     use crate::peptide::leaderboard::leaderboard_cyclopeptide_sequencing;
+    use crate::peptide::make_mass_vector;
     use crate::peptide::peptide::Peptide;
+    use std::error::Error;
 
     #[test]
     fn test_leaderboard_cyclopeptide_sequencing1() -> Result<(), Box<dyn Error>> {

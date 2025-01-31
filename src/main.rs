@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use crate::cyclo::{run_cyclo, CycloArgs, run_leader_cyclo};
+use crate::cyclo::{run_convo_cyclo, run_cyclo, run_leader_cyclo, CycloArgs};
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
@@ -26,6 +26,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    #[command(name = "convolution")]
+    ConvolutionCyclopeptideSequencing(CycloArgs),
     #[command(name = "cyclo-sequence")]
     CyclopeptideSequencing(CycloArgs),
     #[command(name = "dosr-median")]
@@ -43,6 +45,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::ConvolutionCyclopeptideSequencing(args) => run_convo_cyclo(args),
         Commands::CyclopeptideSequencing(args) => run_cyclo(args),
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),

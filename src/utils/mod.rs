@@ -1,3 +1,4 @@
+mod count;
 mod dna;
 mod fasta;
 pub mod hamming;
