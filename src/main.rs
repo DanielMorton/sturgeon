@@ -10,13 +10,13 @@ use std::error::Error;
 mod cyclo;
 mod dosr;
 mod graph;
+mod manhattan;
 mod motif;
 mod ori;
 mod peptide;
 mod translate;
 mod translation;
 mod utils;
-mod manhattan;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

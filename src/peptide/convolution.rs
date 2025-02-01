@@ -180,11 +180,6 @@ mod tests {
             394, 422, 493,
         ];
         let peptide = convolution_cyclopeptide_sequencing(&spectrum, 20, 60)?;
-        println!("{}", score_cyclopeptide(&peptide, &spectrum)?);
-        println!(
-            "{}",
-            score_cyclopeptide(&Peptide::from(&vec![99, 71, 137, 57, 72, 57]), &spectrum)?
-        );
         assert_eq!(peptide.to_string(), "99-71-137-57-72-57");
         Ok(())
     }

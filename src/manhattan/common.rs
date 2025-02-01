@@ -1,20 +1,28 @@
-use std::error::Error;
 use crate::manhattan::backtrack::build_backtrack;
 use crate::manhattan::direction::Direction;
+use std::error::Error;
 
-fn output_lcs(backtrack: &[Vec<Direction>], s: &str, i: usize, j: usize) -> Result<String, Box<dyn Error>> {
+fn output_lcs(
+    backtrack: &[Vec<Direction>],
+    s: &str,
+    i: usize,
+    j: usize,
+) -> Result<String, Box<dyn Error>> {
     if i == 0 || j == 0 {
         return Ok(String::new());
     }
 
     match backtrack[i][j] {
-        Direction::Down => output_lcs(backtrack, s, i - 1, j),
-        Direction::Right => output_lcs(backtrack, s, i, j - 1),
+        Direction::Coordinate(x, y) => output_lcs(backtrack, s, x, y),
         Direction::Diagonal => {
             let mut result = output_lcs(backtrack, s, i - 1, j - 1)?;
             result.push(s.chars().nth(i - 1).unwrap());
             Ok(result)
         }
+        Direction::Left => output_lcs(backtrack, s, i, j - 1),
+        Direction::None => panic!("No direction at {} {}", i, j),
+        Direction::Start => output_lcs(backtrack, s, 0, 0),
+        Direction::Up => output_lcs(backtrack, s, i - 1, j),
     }
 }
 
@@ -24,8 +32,8 @@ fn lcs(s: &str, t: &str) -> Result<String, Box<dyn Error>> {
 }
 
 mod tests {
-    use std::error::Error;
     use crate::manhattan::common::lcs;
+    use std::error::Error;
 
     #[test]
     fn test_lcs1() -> Result<(), Box<dyn Error>> {

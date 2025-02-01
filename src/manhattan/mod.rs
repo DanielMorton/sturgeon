@@ -1,4 +1,5 @@
-mod path;
+mod alignment;
+mod backtrack;
 mod common;
 mod direction;
-mod backtrack;
+mod path;
