@@ -1,14 +1,15 @@
 use crate::manhattan::alignment::alignment::AlignmentResult;
 use crate::manhattan::alignment::backtrack::backtrack_alignment;
 use crate::manhattan::direction::Direction;
+use crate::utils::transpose;
 use num::Num;
 use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
 
-fn global_backtrck<T>(
-    s1: &str,
-    s2: &str,
+fn global_backtrack<T>(
+    s: &str,
+    t: &str,
     match_reward: T,
     mismatch_penalty: T,
     indel_penalty: T,
@@ -16,60 +17,69 @@ fn global_backtrck<T>(
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
-    let mut score = vec![vec![T::zero(); s2.len() + 1]; s1.len() + 1];
-    let mut backtrack = vec![vec![Direction::None; s2.len() + 1]; s1.len() + 1];
+    let s_chars = s.as_bytes();
+    let t_chars = t.as_bytes();
 
-    // Initialize first row and column
-    for i in 1..=s1.len() {
-        score[i][0] = score[i - 1][0] - indel_penalty;
-        if i > 0 {
-            backtrack[i][0] = Direction::Up;
-        }
-    }
-    for j in 1..=s2.len() {
-        score[0][j] = score[0][j - 1] - indel_penalty;
-        if j > 0 {
-            backtrack[0][j] = Direction::Left;
-        }
+    // We still need the full backtrack matrix for the path reconstruction
+    let mut backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
+
+    // Single vector for scores - length of the longer string plus one
+    let mut current_row = vec![T::zero(); t.len() + 1];
+
+    // Initialize first row
+    for j in 1..=t.len() {
+        current_row[j] = current_row[j - 1] - indel_penalty;
+        backtrack[0][j] = Direction::Left;
     }
 
-    // Fill the matrices
-    let s1_bytes = s1.as_bytes();
-    let s2_bytes = s2.as_bytes();
+    // Variables to store the previous diagonal score
+    let mut prev_diagonal;
+    let mut temp;
 
-    for i in 1..=s1.len() {
-        for j in 1..=s2.len() {
-            let match_score = if s1_bytes[i - 1] == s2_bytes[j - 1] {
+    // Process row by row
+    for i in 1..=s.len() {
+        prev_diagonal = current_row[0];
+        current_row[0] = current_row[0] - indel_penalty;
+        backtrack[i][0] = Direction::Up;
+
+        for j in 1..=t.len() {
+            // Store the current score before updating
+            temp = current_row[j];
+
+            let match_score = if s_chars[i - 1] == t_chars[j - 1] {
                 match_reward
             } else {
                 -mismatch_penalty
             };
 
-            let diagonal_score = score[i - 1][j - 1] + match_score;
-            let up_score = score[i - 1][j] - indel_penalty;
-            let left_score = score[i][j - 1] - indel_penalty;
+            // Calculate scores using the single vector
+            let diagonal_score = prev_diagonal + match_score;
+            let up_score = current_row[j] - indel_penalty;
+            let left_score = current_row[j - 1] - indel_penalty;
 
-            // Find the maximum score and its direction
-            score[i][j] = diagonal_score;
-            backtrack[i][j] = Direction::Diagonal;
-
-            if left_score > score[i][j] {
-                score[i][j] = left_score;
+            // Find maximum score and direction
+            if diagonal_score >= up_score && diagonal_score >= left_score {
+                current_row[j] = diagonal_score;
+                backtrack[i][j] = Direction::Diagonal;
+            } else if left_score >= up_score {
+                current_row[j] = left_score;
                 backtrack[i][j] = Direction::Left;
-            }
-
-            if up_score > score[i][j] {
-                score[i][j] = up_score;
+            } else {
+                current_row[j] = up_score;
                 backtrack[i][j] = Direction::Up;
             }
+
+            // Update previous diagonal for next iteration
+            prev_diagonal = temp;
         }
     }
-    Ok((backtrack, score[s1.len()][s2.len()]))
+
+    Ok((backtrack, current_row[t.len()]))
 }
 
 pub fn global_alignment<T>(
-    s1: &str,
-    s2: &str,
+    s: &str,
+    t: &str,
     match_reward: T,
     mismatch_penalty: T,
     indel_penalty: T,
@@ -78,11 +88,10 @@ where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
     // Initialize the score and backtrack matrices
-    let (backtrack, score) =
-        global_backtrck(s1, s2, match_reward, mismatch_penalty, indel_penalty)?;
+    let (backtrack, score) = global_backtrack(s, t, match_reward, mismatch_penalty, indel_penalty)?;
 
     // Backtrack to find the alignment
-    backtrack_alignment(&backtrack, s1, s2, score)
+    backtrack_alignment(&backtrack, s, t, score)
 }
 
 mod tests {

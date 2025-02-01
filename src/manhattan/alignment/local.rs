@@ -6,9 +6,9 @@ use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
 
-fn local_backtrck<T>(
-    s1: &str,
-    s2: &str,
+fn local_backtrack<T>(
+    s: &str,
+    t: &str,
     match_reward: T,
     mismatch_penalty: T,
     indel_penalty: T,
@@ -16,75 +16,94 @@ fn local_backtrck<T>(
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
-    let mut score = vec![vec![T::zero(); s2.len() + 1]; s1.len() + 1];
-    let mut backtrack = vec![vec![Direction::None; s2.len() + 1]; s1.len() + 1];
+    let s_chars = s.as_bytes();
+    let t_chars = t.as_bytes();
+
+    // Still need backtrack matrix for path reconstruction
+    let mut backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
+
+    // Single vector for scores
+    let mut current_row = vec![T::zero(); t.len() + 1];
+
+    // Initialize first row with Direction::Start
+    for j in 1..=t.len() {
+        backtrack[0][j] = Direction::Start;
+    }
+
     let mut max_score = T::zero();
     let (mut max_i, mut max_j) = (0, 0);
 
-    // Initialize first row and column
-    for i in 1..=s1.len() {
-        if i > 0 {
-            backtrack[i][0] = Direction::Start;
-        }
-    }
-    for j in 1..=s2.len() {
-        if j > 0 {
-            backtrack[0][j] = Direction::Start;
-        }
-    }
+    // Variables to store the previous diagonal score
+    let mut prev_diagonal;
+    let mut temp;
 
-    // Fill the matrices
-    let s1_bytes = s1.as_bytes();
-    let s2_bytes = s2.as_bytes();
+    // Process row by row
+    for i in 1..=s.len() {
+        backtrack[i][0] = Direction::Start;
+        prev_diagonal = current_row[0];
+        current_row[0] = T::zero(); // Local alignment can start anywhere
 
-    for i in 1..=s1.len() {
-        for j in 1..=s2.len() {
-            let match_score = if s1_bytes[i - 1] == s2_bytes[j - 1] {
+        for j in 1..=t.len() {
+            // Store the current score before updating
+            temp = current_row[j];
+
+            let match_score = if s_chars[i - 1] == t_chars[j - 1] {
                 match_reward
             } else {
                 -mismatch_penalty
             };
 
-            let diagonal_score = score[i - 1][j - 1] + match_score;
-            let up_score = score[i - 1][j] - indel_penalty;
-            let left_score = score[i][j - 1] - indel_penalty;
+            // Calculate scores using the single vector
+            let diagonal_score = prev_diagonal + match_score;
+            let up_score = current_row[j] - indel_penalty;
+            let left_score = current_row[j - 1] - indel_penalty;
 
+            // Start with zero (local alignment can start anywhere)
+            current_row[j] = T::zero();
             backtrack[i][j] = Direction::Start;
 
-            // Find the maximum score and its direction
-            if diagonal_score > score[i][j] {
-                score[i][j] = diagonal_score;
+            // Update if diagonal is better
+            if diagonal_score > current_row[j] {
+                current_row[j] = diagonal_score;
                 backtrack[i][j] = Direction::Diagonal;
             }
 
-            if left_score > score[i][j] {
-                score[i][j] = left_score;
+            // Update if left is better
+            if left_score > current_row[j] {
+                current_row[j] = left_score;
                 backtrack[i][j] = Direction::Left;
             }
 
-            if up_score > score[i][j] {
-                score[i][j] = up_score;
+            // Update if up is better
+            if up_score > current_row[j] {
+                current_row[j] = up_score;
                 backtrack[i][j] = Direction::Up;
             }
 
-            if score[i][j] > max_score {
-                max_score = score[i][j];
-                (max_i, max_j) = (i, j);
+            // Track maximum score position
+            if current_row[j] > max_score {
+                max_score = current_row[j];
+                max_i = i;
+                max_j = j;
             }
+
+            // Update previous diagonal for next iteration
+            prev_diagonal = temp;
         }
     }
 
-    if max_score > score[s1.len()][s2.len()] {
-        score[s1.len()][s2.len()] = max_score;
-        backtrack[s1.len()][s2.len()] = Direction::Coordinate(max_i, max_j)
+    // Store the endpoint coordinates in the backtrack matrix
+    if max_score > current_row[t.len()] {
+        current_row[t.len()] = max_score;
+        backtrack[s.len()][t.len()] = Direction::Coordinate(max_i, max_j);
     }
 
-    Ok((backtrack, score[s1.len()][s2.len()]))
+    Ok((backtrack, current_row[t.len()]))
 }
 
 pub fn local_alignment<T>(
-    s1: &str,
-    s2: &str,
+    s: &str,
+    t: &str,
     match_reward: T,
     mismatch_penalty: T,
     indel_penalty: T,
@@ -93,10 +112,10 @@ where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
     // Initialize the score and backtrack matrices
-    let (backtrack, score) = local_backtrck(s1, s2, match_reward, mismatch_penalty, indel_penalty)?;
+    let (backtrack, score) = local_backtrack(s, t, match_reward, mismatch_penalty, indel_penalty)?;
 
     // Backtrack to find the alignment
-    backtrack_alignment(&backtrack, s1, s2, score)
+    backtrack_alignment(&backtrack, s, t, score)
 }
 
 mod tests {
