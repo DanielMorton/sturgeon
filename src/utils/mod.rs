@@ -9,7 +9,9 @@ mod rna;
 mod time;
 mod transpose;
 mod vec;
+mod blosum;
 
+pub use blosum::blosum_matrix;
 pub use dna::{DNA, DNA_INDEX};
 pub use fasta::Fasta;
 pub use nucleotide::{InvalidNucleotideError, InvalidNucleotidePositionError};

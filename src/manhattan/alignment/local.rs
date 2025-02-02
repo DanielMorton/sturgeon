@@ -124,7 +124,7 @@ mod tests {
     use std::error::Error;
 
     #[test]
-    fn test_global_alignment1() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment1() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("GAGA", "GAT", 1, 1, 2)?,
             AlignmentResult::new(2, "GA", "GA")
@@ -133,7 +133,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment2() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment2() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("AGC", "ATC", 3, 3, 1)?,
             AlignmentResult::new(4, "AG-C", "A-TC")
@@ -142,7 +142,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment3() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment3() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("AT", "AG", 1, 1, 1)?,
             AlignmentResult::new(1, "A", "A")
@@ -151,7 +151,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment4() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment4() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("TAACG", "ACGTG", 1, 1, 1)?,
             AlignmentResult::new(3, "ACG", "ACG")
@@ -160,7 +160,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment5() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment5() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("CAGAGATGGCCG", "ACG", 3, 2, 1)?,
             AlignmentResult::new(6, "CG", "CG")
@@ -169,7 +169,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment6() -> Result<(), Box<dyn Error>> {
+    fn test_local_alignment6() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             local_alignment("CTT", "AGCATAAAGCATT", 2, 3, 1)?,
             AlignmentResult::new(5, "C-TT", "CATT")
