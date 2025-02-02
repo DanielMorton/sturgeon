@@ -131,7 +131,7 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment3() -> Result<(), Box<dyn Error>> {
+    fn test_fitting_alignment3() -> Result<(), Box<dyn Error>> {
         let blosum = blosum_matrix()?;
         assert_eq!(
             fitting_alignment("DISCREPANTLY", "DISCRETE", &blosum, 1)?,
@@ -141,11 +141,11 @@ mod tests {
     }
 
     #[test]
-    fn test_global_alignment4() -> Result<(), Box<dyn Error>> {
+    fn test_fitting_alignment4() -> Result<(), Box<dyn Error>> {
         let blosum = blosum_matrix()?;
         assert_eq!(
             fitting_alignment("CANT", "CA", &blosum, 1)?,
-            AlignmentResult::new(34, "CA", "CA")
+            AlignmentResult::new(13, "CA", "CA")
         );
         Ok(())
     }

@@ -133,7 +133,7 @@ mod tests {
     fn test_leaderboard_cyclopeptide_sequencing1() -> Result<(), Box<dyn Error>> {
         let spectrum = vec![0, 71, 113, 129, 147, 200, 218, 260, 313, 331, 347, 389, 460];
         let amino_masses = make_mass_vector()?;
-        let mut peptide = leaderboard_cyclopeptide_sequencing(&spectrum, &amino_masses, 10)?;
+        let peptide = leaderboard_cyclopeptide_sequencing(&spectrum, &amino_masses, 10)?;
         assert_eq!(peptide, Peptide::from(&vec![113, 147, 71, 129]));
         Ok(())
     }
