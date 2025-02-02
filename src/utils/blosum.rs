@@ -9,7 +9,10 @@ pub fn blosum_matrix() -> Result<HashMap<(char, char), i32>, Box<dyn Error>> {
 
     // Extract the header line to get the order of amino acids
     let header = lines[0];
-    let amino_acids = header.split_whitespace().map(|s| s.chars().next().unwrap()).collect::<Vec<_>>();
+    let amino_acids = header
+        .split_whitespace()
+        .map(|s| s.chars().next().unwrap())
+        .collect::<Vec<_>>();
 
     // Iterate over the remaining lines to parse the matrix
     for line in lines[1..].iter() {

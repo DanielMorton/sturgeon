@@ -1,18 +1,20 @@
+use crate::manhattan::alignment::alignment::AlignmentResult;
+use crate::manhattan::alignment::backtrack::backtrack_alignment;
+use crate::manhattan::direction::Direction;
+use num::Num;
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
-use num::Num;
-use crate::manhattan::alignment::alignment::AlignmentResult;
-use crate::manhattan::alignment::backtrack::backtrack_alignment;
-use crate::manhattan::direction::Direction;
 
-fn fitting_backtrack<T>(s: &str,
-                        t: &str,
-                        blosum: &HashMap<(char, char), T>,
-                        indel_penalty: T) -> Result<(Vec<Vec<Direction>>, T), Box<dyn Error>>
-    where
-        T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
+fn fitting_backtrack<T>(
+    s: &str,
+    t: &str,
+    blosum: &HashMap<(char, char), T>,
+    indel_penalty: T,
+) -> Result<(Vec<Vec<Direction>>, T), Box<dyn Error>>
+where
+    T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
     let s_chars: Vec<char> = s.chars().collect();
     let t_chars: Vec<char> = t.chars().collect();
@@ -49,7 +51,8 @@ fn fitting_backtrack<T>(s: &str,
             temp = current_row[j];
 
             // Calculate scores using the single vector
-            let diagonal_score = prev_diagonal + *blosum.get(&(s_chars[i - 1], t_chars[j - 1])).unwrap();
+            let diagonal_score =
+                prev_diagonal + *blosum.get(&(s_chars[i - 1], t_chars[j - 1])).unwrap();
             let up_score = current_row[j] - indel_penalty;
             let left_score = current_row[j - 1] - indel_penalty;
 
@@ -80,7 +83,7 @@ fn fitting_backtrack<T>(s: &str,
         backtrack[s.len()][t.len()] = Direction::Coordinate(max_i, t.len());
     }
 
-    Ok((backtrack,  current_row[t.len()]))
+    Ok((backtrack, current_row[t.len()]))
 }
 
 pub fn fitting_alignment<T>(
@@ -89,9 +92,9 @@ pub fn fitting_alignment<T>(
     blosum: &HashMap<(char, char), T>,
     indel_penalty: T,
 ) -> Result<AlignmentResult<T>, Box<dyn Error>>
-    where
-        T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>, {
-
+where
+    T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
+{
     // Initialize the score and backtrack matrices
     let (backtrack, score) = fitting_backtrack(s, t, blosum, indel_penalty)?;
 
@@ -102,10 +105,10 @@ pub fn fitting_alignment<T>(
 
 mod tests {
     use crate::manhattan::alignment::alignment::AlignmentResult;
-    use crate::manhattan::alignment::local::local_alignment;
-    use std::error::Error;
     use crate::manhattan::alignment::fitting::fitting_alignment;
+    use crate::manhattan::alignment::local::local_alignment;
     use crate::utils::blosum_matrix;
+    use std::error::Error;
 
     #[test]
     fn test_fitting_alignment1() -> Result<(), Box<dyn Error>> {
