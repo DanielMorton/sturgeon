@@ -2,22 +2,22 @@ use crate::manhattan::alignment::alignment::AlignmentResult;
 use crate::manhattan::alignment::backtrack::backtrack_alignment;
 use crate::manhattan::direction::Direction;
 use num::Num;
-use std::collections::HashMap;
 use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
 
-fn fitting_backtrack<T>(
+fn overlap_backtrack<T>(
     s: &str,
     t: &str,
-    blosum: &HashMap<(char, char), T>,
+    match_reward: T,
+    mismatch_penalty: T,
     indel_penalty: T,
 ) -> Result<(Vec<Vec<Direction>>, T), Box<dyn Error>>
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
-    let s_chars: Vec<char> = s.chars().collect();
-    let t_chars: Vec<char> = t.chars().collect();
+    let s_chars = s.as_bytes();
+    let t_chars = t.as_bytes();
 
     // Still need backtrack matrix for path reconstruction
     let mut backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
@@ -32,7 +32,7 @@ where
     }
 
     let mut max_score = T::zero();
-    let mut max_i = 0;
+    let mut max_j = 0;
 
     // Variables to store the previous diagonal score
     let mut prev_diagonal;
@@ -50,8 +50,14 @@ where
             temp = current_row[j];
 
             // Calculate scores using the single vector
-            let diagonal_score =
-                prev_diagonal + *blosum.get(&(s_chars[i - 1], t_chars[j - 1])).unwrap();
+            let match_score = if s_chars[i - 1] == t_chars[j - 1] {
+                match_reward
+            } else {
+                -mismatch_penalty
+            };
+
+            // Calculate scores using the single vector
+            let diagonal_score = prev_diagonal + match_score;
             let up_score = current_row[j] - indel_penalty;
             let left_score = current_row[j - 1] - indel_penalty;
 
@@ -70,32 +76,37 @@ where
             // Update previous diagonal for next iteration
             prev_diagonal = temp;
         }
-        if current_row[t.len()] > prev_last {
-            max_score = current_row[t.len()];
-            max_i = i;
+    }
+
+    for j in 1..=t.len() {
+        if current_row[j] > max_score {
+            max_score = current_row[j];
+            max_j = j;
         }
     }
 
     // Store the endpoint coordinates in the backtrack matrix
     if max_score > current_row[t.len()] {
         current_row[t.len()] = max_score;
-        backtrack[s.len()][t.len()] = Direction::Coordinate(max_i, t.len());
+        backtrack[s.len()][t.len()] = Direction::Coordinate(s.len(), max_j);
     }
 
     Ok((backtrack, current_row[t.len()]))
 }
 
-pub fn fitting_alignment<T>(
+pub fn overlap_alignment<T>(
     s: &str,
     t: &str,
-    blosum: &HashMap<(char, char), T>,
+    match_reward: T,
+    mismatch_penalty: T,
     indel_penalty: T,
 ) -> Result<AlignmentResult<T>, Box<dyn Error>>
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T>,
 {
     // Initialize the score and backtrack matrices
-    let (backtrack, score) = fitting_backtrack(s, t, blosum, indel_penalty)?;
+    let (backtrack, score) =
+        overlap_backtrack(s, t, match_reward, mismatch_penalty, indel_penalty)?;
 
     // Backtrack to find the alignment
     backtrack_alignment(&backtrack, s, t, score)
@@ -103,47 +114,68 @@ where
 
 mod tests {
     use crate::manhattan::alignment::alignment::AlignmentResult;
-    use crate::manhattan::alignment::fitting::fitting_alignment;
-    use crate::manhattan::alignment::local::local_alignment;
-    use crate::utils::blosum_matrix;
+    use crate::manhattan::alignment::overlap::overlap_alignment;
     use std::error::Error;
 
     #[test]
-    fn test_fitting_alignment1() -> Result<(), Box<dyn Error>> {
-        let blosum = blosum_matrix()?;
+    fn test_overlap_alignment1() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            fitting_alignment("DISCREPANTLY", "PATENT", &blosum, 1)?,
-            AlignmentResult::new(20, "PA--NT", "PATENT")
+            overlap_alignment("GAGA", "GAT", 1, 1, 2)?,
+            AlignmentResult::new(2, "GA", "GA")
         );
         Ok(())
     }
 
     #[test]
-    fn test_fitting_alignment2() -> Result<(), Box<dyn Error>> {
-        let blosum = blosum_matrix()?;
+    fn test_overlap_alignment2() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            fitting_alignment("ARKANSAS", "SASS", &blosum, 1)?,
-            AlignmentResult::new(11, "SA-S", "SASS")
+            overlap_alignment("CCAT", "AT", 1, 1, 1)?,
+            AlignmentResult::new(2, "AT", "AT")
         );
         Ok(())
     }
 
     #[test]
-    fn test_fitting_alignment3() -> Result<(), Box<dyn Error>> {
-        let blosum = blosum_matrix()?;
+    fn test_overlap_alignment3() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            fitting_alignment("DISCREPANTLY", "DISCRETE", &blosum, 1)?,
-            AlignmentResult::new(34, "DISCREPANT-", "DISCRE---TE")
+            overlap_alignment("GAT", "CAT", 1, 5, 1)?,
+            AlignmentResult::new(1, "-AT", "CAT")
         );
         Ok(())
     }
 
     #[test]
-    fn test_fitting_alignment4() -> Result<(), Box<dyn Error>> {
-        let blosum = blosum_matrix()?;
+    fn test_overlap_alignment4() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            fitting_alignment("CANT", "CA", &blosum, 1)?,
-            AlignmentResult::new(13, "CA", "CA")
+            overlap_alignment("ATCACT", "AT", 1, 5, 1)?,
+            AlignmentResult::new(1, "ACT", "A-T")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_overlap_alignment5() -> Result<(), Box<dyn Error>> {
+        assert_eq!(
+            overlap_alignment("ATCACT", "ATG", 1, 1, 5)?,
+            AlignmentResult::new(0, "", "")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_overlap_alignment6() -> Result<(), Box<dyn Error>> {
+        assert_eq!(
+            overlap_alignment("CAGAGATGGCCG", "ACG", 3, 2, 1)?,
+            AlignmentResult::new(5, "-CG", "ACG")
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_overlap_alignment7() -> Result<(), Box<dyn Error>> {
+        assert_eq!(
+            overlap_alignment("CTT", "AGCATAAAGCATT", 2, 3, 1)?,
+            AlignmentResult::new(0, "", "")
         );
         Ok(())
     }
