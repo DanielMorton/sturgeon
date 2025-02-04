@@ -7,7 +7,7 @@ use std::ops::{Mul, Neg};
 
 fn add_score<T>(value: T, score: T) -> T
 where
-    T: Num + Debug + Copy + Ord + Mul + Neg<Output = T> + Bounded,
+    T: Num + Copy + Bounded,
 {
     if value != T::min_value() {
         value + score
@@ -98,10 +98,6 @@ where
 
             diagonal[i][j] = diagonal_from_diagonal.max(up[i][j]).max(left[i][j]);
 
-            println!(
-                "{} {} d {:?} u {:?} l {:?}",
-                i, j, diagonal_from_diagonal, up[i][j], left[i][j]
-            );
             // Set traceback for M
             diagonal_backtrack[i][j] = if diagonal[i][j] == left[i][j] {
                 Direction::Left
@@ -112,9 +108,6 @@ where
             };
         }
     }
-    println!("{:?}", diagonal);
-    println!("{:?}", up);
-    println!("{:?}", left);
 
     let score = diagonal[s.len()][t.len()]
         .max(up[s.len()][t.len()])
@@ -153,9 +146,6 @@ where
         gap_opening,
         gap_extension,
     )?;
-    println!("{:?}", diagonal_backtrack);
-    println!("{:?}", up_backtrack);
-    println!("{:?}", left_backtrack);
     backtrack_affine(
         &diagonal_backtrack,
         &up_backtrack,
@@ -195,7 +185,6 @@ where
     }
 
     while i > 0 || j > 0 {
-        println!("{:?} {} {}", current_matrix, i, j);
         match current_matrix {
             Direction::Coordinate(x, y) => {
                 i = x;
