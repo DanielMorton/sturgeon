@@ -5,7 +5,6 @@ use num::{Bounded, Num};
 use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
-use std::os::unix::raw::time_t;
 
 fn add_score<T>(value: T, score: T) -> T
 where
