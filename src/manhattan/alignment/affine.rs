@@ -1,9 +1,11 @@
+use crate::manhattan::alignment::affine_classes::{AffineBacktrack, AffineScore};
 use crate::manhattan::alignment::alignment::AlignmentResult;
 use crate::manhattan::direction::Direction;
 use num::{Bounded, Num};
 use std::error::Error;
 use std::fmt::Debug;
 use std::ops::{Mul, Neg};
+use std::os::unix::raw::time_t;
 
 fn add_score<T>(value: T, score: T) -> T
 where
@@ -23,85 +25,58 @@ fn affine_backtrack<T>(
     mismatch_penalty: T,
     gap_opening: T,
     gap_extension: T,
-) -> Result<
-    (
-        Vec<Vec<Direction>>,
-        Vec<Vec<Direction>>,
-        Vec<Vec<Direction>>,
-        T,
-        Direction,
-    ),
-    Box<dyn Error>,
->
+) -> Result<(AffineBacktrack, T, Direction), Box<dyn Error>>
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T> + Bounded,
 {
-    let s_chars: Vec<char> = s.chars().collect();
-    let t_chars: Vec<char> = t.chars().collect();
+    let s_bytes = s.as_bytes();
+    let t_bytes = t.as_bytes();
 
-    let mut diagonal = vec![vec![T::zero(); t.len() + 1]; s.len() + 1];
-    let mut up = vec![vec![T::zero(); t.len() + 1]; s.len() + 1];
-    let mut left = vec![vec![T::zero(); t.len() + 1]; s.len() + 1];
-    let mut diagonal_backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
-    let mut up_backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
-    let mut left_backtrack = vec![vec![Direction::None; t.len() + 1]; s.len() + 1];
+    let (s_len, t_len) = (s.len(), t.len());
 
-    // Initialize first column
-    for i in 1..=s.len() {
-        up[i][0] = up[i - 1][0] - if i == 1 { gap_opening } else { gap_extension };
-        up_backtrack[i][0] = Direction::Up;
-        left[i][0] = T::min_value();
-        diagonal[i][0] = up[i][0];
-        diagonal_backtrack[i][0] = Direction::Up;
-    }
-
-    // Initialize first row
-    for j in 1..=t.len() {
-        up[0][j] = T::min_value();
-        left[0][j] = left[0][j - 1] - if j == 1 { gap_opening } else { gap_extension };
-        left_backtrack[0][j] = Direction::Left;
-        diagonal[0][j] = left[0][j];
-        diagonal_backtrack[0][j] = Direction::Left;
-    }
+    let mut scores = AffineScore::new(s_len + 1, t_len + 1, gap_opening, gap_extension);
+    let mut backtrack = AffineBacktrack::new(s_len + 1, t_len + 1);
 
     // Fill matrices
-    for i in 1..=s.len() {
-        for j in 1..=t.len() {
-            let up_from_diagonal = add_score(diagonal[i - 1][j], -gap_opening);
-            let up_from_up = add_score(up[i - 1][j], -gap_extension);
+    for i in 1..=s_len {
+        for j in 1..=t_len {
+            let up_from_diagonal = add_score(scores.diagonal[i - 1][j], -gap_opening);
+            let up_from_up = add_score(scores.up[i - 1][j], -gap_extension);
 
-            up[i][j] = up_from_diagonal.max(up_from_up);
-            up_backtrack[i][j] = if up[i][j] == up_from_up {
+            scores.up[i][j] = up_from_diagonal.max(up_from_up);
+            backtrack.up[i][j] = if scores.up[i][j] == up_from_up {
                 Direction::Up
             } else {
                 Direction::Diagonal
             };
 
-            let left_from_diagonal = add_score(diagonal[i][j - 1], -gap_opening);
-            let left_from_left = add_score(left[i][j - 1], -gap_extension);
+            let left_from_diagonal = add_score(scores.diagonal[i][j - 1], -gap_opening);
+            let left_from_left = add_score(scores.left[i][j - 1], -gap_extension);
 
-            left[i][j] = left_from_diagonal.max(left_from_left);
-            left_backtrack[i][j] = if left[i][j] == left_from_left {
+            scores.left[i][j] = left_from_diagonal.max(left_from_left);
+            backtrack.left[i][j] = if scores.left[i][j] == left_from_left {
                 Direction::Left
             } else {
                 Direction::Diagonal
             };
             // Calculate score for match/mismatch
-            let match_score = if s_chars[i - 1] == t_chars[j - 1] {
+            let match_score = if s_bytes[i - 1] == t_bytes[j - 1] {
                 match_reward
             } else {
                 -mismatch_penalty
             };
 
             // Fill M matrix
-            let diagonal_from_diagonal = add_score(diagonal[i - 1][j - 1], match_score);
+            let diagonal_from_diagonal = add_score(scores.diagonal[i - 1][j - 1], match_score);
 
-            diagonal[i][j] = diagonal_from_diagonal.max(up[i][j]).max(left[i][j]);
+            scores.diagonal[i][j] = diagonal_from_diagonal
+                .max(scores.up[i][j])
+                .max(scores.left[i][j]);
 
             // Set traceback for M
-            diagonal_backtrack[i][j] = if diagonal[i][j] == left[i][j] {
+            backtrack.diagonal[i][j] = if scores.diagonal[i][j] == scores.left[i][j] {
                 Direction::Left
-            } else if diagonal[i][j] == up[i][j] {
+            } else if scores.diagonal[i][j] == scores.up[i][j] {
                 Direction::Up
             } else {
                 Direction::Diagonal
@@ -109,23 +84,17 @@ where
         }
     }
 
-    let score = diagonal[s.len()][t.len()]
-        .max(up[s.len()][t.len()])
-        .max(left[s.len()][t.len()]);
-    let score_matrix = if score == left[s.len()][t.len()] {
+    let score = scores.diagonal[s_len][t_len]
+        .max(scores.up[s_len][t_len])
+        .max(scores.left[s_len][t_len]);
+    let score_matrix = if score == scores.left[s_len][t_len] {
         Direction::Left
-    } else if score == up[s.len()][t.len()] {
+    } else if score == scores.up[s_len][t_len] {
         Direction::Up
     } else {
         Direction::Diagonal
     };
-    Ok((
-        diagonal_backtrack,
-        up_backtrack,
-        left_backtrack,
-        score,
-        score_matrix,
-    ))
+    Ok((backtrack, score, score_matrix))
 }
 fn affine_gap_alignment<T>(
     s: &str,
@@ -138,7 +107,7 @@ fn affine_gap_alignment<T>(
 where
     T: Num + Debug + Copy + Ord + Mul + Neg<Output = T> + Bounded,
 {
-    let (diagonal_backtrack, up_backtrack, left_backtrack, score, score_matrix) = affine_backtrack(
+    let (backtrack, score, score_matrix) = affine_backtrack(
         s,
         t,
         match_reward,
@@ -146,21 +115,11 @@ where
         gap_opening,
         gap_extension,
     )?;
-    backtrack_affine(
-        &diagonal_backtrack,
-        &up_backtrack,
-        &left_backtrack,
-        s,
-        t,
-        score,
-        &score_matrix,
-    )
+    backtrack_affine(&backtrack, s, t, score, &score_matrix)
 }
 
 fn backtrack_affine<T>(
-    diagonal_backtrack: &[Vec<Direction>],
-    up_backtrack: &[Vec<Direction>],
-    left_backtrack: &[Vec<Direction>],
+    backtrack: &AffineBacktrack,
     s: &str,
     t: &str,
     score: T,
@@ -177,11 +136,11 @@ where
     let mut j = t.len();
     let mut current_matrix = score_matrix.clone();
     if current_matrix == Direction::Diagonal {
-        current_matrix = diagonal_backtrack[i][j]
+        current_matrix = backtrack.diagonal[i][j]
     } else if current_matrix == Direction::Up {
-        current_matrix = up_backtrack[i][j]
+        current_matrix = backtrack.up[i][j]
     } else {
-        current_matrix = left_backtrack[i][j]
+        current_matrix = backtrack.left[i][j]
     }
 
     while i > 0 || j > 0 {
@@ -191,7 +150,7 @@ where
                 j = y;
             }
             Direction::Diagonal => {
-                let next_matrix = diagonal_backtrack[i][j];
+                let next_matrix = backtrack.diagonal[i][j];
                 if next_matrix == Direction::Diagonal {
                     align1 = format!("{}{}", s_bytes[i - 1] as char, align1);
                     align2 = format!("{}{}", t_bytes[j - 1] as char, align2);
@@ -203,7 +162,7 @@ where
             Direction::Left => {
                 align1 = format!("-{}", align1);
                 align2 = format!("{}{}", t_bytes[j - 1] as char, align2);
-                current_matrix = left_backtrack[i][j];
+                current_matrix = backtrack.left[i][j];
                 j -= 1;
             }
             Direction::None => break,
@@ -214,7 +173,7 @@ where
             Direction::Up => {
                 align1 = format!("{}{}", s_bytes[i - 1] as char, align1);
                 align2 = format!("-{}", align2);
-                current_matrix = up_backtrack[i][j];
+                current_matrix = backtrack.up[i][j];
                 i -= 1;
             }
         }
