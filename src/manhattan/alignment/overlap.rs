@@ -36,13 +36,11 @@ where
 
     // Variables to store the previous diagonal score
     let mut prev_diagonal;
-    let mut prev_last;
     let mut temp;
 
     for i in 1..=s.len() {
         backtrack[i][0] = Direction::Start;
         prev_diagonal = current_row[0];
-        prev_last = current_row[t.len()];
         current_row[0] = T::zero(); // Local alignment can start anywhere
 
         for j in 1..=t.len() {

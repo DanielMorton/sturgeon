@@ -1,3 +1,4 @@
+mod affine;
 mod alignment;
 mod backtrack;
 mod fitting;
