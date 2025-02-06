@@ -9,6 +9,7 @@ use std::error::Error;
 
 mod cyclo;
 mod dosr;
+mod genome;
 mod graph;
 mod manhattan;
 mod motif;
