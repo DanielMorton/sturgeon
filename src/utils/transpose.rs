@@ -6,7 +6,6 @@ pub fn transpose<T: Clone>(matrix: &[Vec<T>]) -> Result<Vec<Vec<T>>, Box<dyn Err
         return Ok(Vec::new());
     }
 
-    let rows = matrix.len();
     let cols = matrix[0].len();
 
     // Create a new vector with transposed dimensions
@@ -15,8 +14,8 @@ pub fn transpose<T: Clone>(matrix: &[Vec<T>]) -> Result<Vec<Vec<T>>, Box<dyn Err
     // Fill the transposed vector
     for j in 0..cols {
         let mut transposed_row = vec![];
-        for i in 0..rows {
-            transposed_row.push(matrix[i][j].clone());
+        for row in matrix.iter() {
+            transposed_row.push(row[j].clone());
         }
         transposed.push(transposed_row)
     }

@@ -2,6 +2,7 @@ use crate::peptide::leaderboard::trim;
 use crate::peptide::peptide::{expand, parent_mass, Peptide};
 use crate::peptide::score::score_cyclopeptide;
 use crate::utils::vec_to_count;
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -24,7 +25,7 @@ fn filter_convolution(
     max_length: usize,
 ) -> Result<Vec<usize>, Box<dyn Error>> {
     // For each difference, calculate how many times it should appear
-    let diff_counts = vec_to_count(&convolution)?;
+    let diff_counts = vec_to_count(convolution)?;
 
     let mut sorted_diffs = diff_counts.clone().into_iter().collect::<Vec<(_, _)>>();
     sorted_diffs.sort_by(|a, b| b.1.cmp(&a.1));
@@ -38,13 +39,9 @@ fn filter_convolution(
 
     // Filter convolution based on frequency threshold
     Ok(convolution
-        .into_iter()
-        .filter(|diff| {
-            diff_counts
-                .get(diff)
-                .map_or(false, |&c| c >= threshold_count)
-        })
-        .map(|c| *c)
+        .iter()
+        .filter(|diff| diff_counts.get(diff).is_some_and(|&c| c >= threshold_count))
+        .copied()
         .collect())
 }
 
@@ -91,15 +88,17 @@ pub fn convolution_cyclopeptide_sequencing(
 
         for peptide in &leaderboard {
             let peptide_mass = peptide.mass();
-            if peptide_mass == target_mass {
-                let peptide_score = score_cyclopeptide(&peptide, spectrum)?;
+            match peptide_mass.cmp(&target_mass) {
+                Ordering::Greater => to_remove.push(peptide.clone()),
+                Ordering::Equal => {
+                    let peptide_score = score_cyclopeptide(peptide, spectrum)?;
 
-                if peptide_score > leader_score {
-                    leader_peptide = peptide.clone();
-                    leader_score = peptide_score;
+                    if peptide_score > leader_score {
+                        leader_peptide = peptide.clone();
+                        leader_score = peptide_score;
+                    }
                 }
-            } else if peptide_mass > target_mass {
-                to_remove.push(peptide.clone());
+                Ordering::Less => (),
             }
         }
 
@@ -133,18 +132,22 @@ pub fn convolution_cyclopeptide_list(
 
         for peptide in &leaderboard {
             let peptide_mass = peptide.mass();
-            if peptide_mass == target_mass {
-                let peptide_score = score_cyclopeptide(peptide, spectrum)?;
-                if peptide_score > leader_score {
-                    leader_peptides.clear();
-                    leader_peptides.push(peptide.clone());
-                    leader_score = peptide_score;
-                } else if peptide_score == leader_score {
-                    leader_peptides.push(peptide.clone());
+            match peptide_mass.cmp(&target_mass) {
+                Ordering::Greater => to_remove.push(peptide.clone()),
+                Ordering::Equal => {
+                    let peptide_score = score_cyclopeptide(peptide, spectrum)?;
+                    match peptide_score.cmp(&leader_score) {
+                        Ordering::Greater => {
+                            leader_peptides.clear();
+                            leader_peptides.push(peptide.clone());
+                            leader_score = peptide_score;
+                        }
+                        Ordering::Equal => leader_peptides.push(peptide.clone()),
+                        Ordering::Less => (),
+                    }
+                    to_remove.push(peptide.clone());
                 }
-                to_remove.push(peptide.clone());
-            } else if peptide_mass > target_mass {
-                to_remove.push(peptide.clone());
+                Ordering::Less => (),
             }
         }
 
@@ -160,8 +163,6 @@ pub fn convolution_cyclopeptide_list(
 
 mod tests {
     use crate::peptide::convolution::{convolution_cyclopeptide_sequencing, spectral_convolution};
-    use crate::peptide::peptide::Peptide;
-    use crate::peptide::score::score_cyclopeptide;
     use std::error::Error;
 
     #[test]

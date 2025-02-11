@@ -1,5 +1,6 @@
 use crate::peptide::peptide::{expand, parent_mass, Peptide};
 use crate::peptide::score::{score_cyclopeptide, score_linpeptide};
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -22,14 +23,16 @@ pub fn leaderboard_cyclopeptide_sequencing(
         // Check each peptide
         for peptide in leaderboard.iter() {
             let peptide_mass = peptide.mass();
-            if peptide_mass == target_mass {
-                let score = score_cyclopeptide(peptide, spectrum)?;
-                if score > leader_score {
-                    leader_peptide = peptide.clone();
-                    leader_score = score;
+            match peptide_mass.cmp(&target_mass) {
+                Ordering::Greater => to_remove.push(peptide.clone()),
+                Ordering::Equal => {
+                    let score = score_cyclopeptide(peptide, spectrum)?;
+                    if score > leader_score {
+                        leader_peptide = peptide.clone();
+                        leader_score = score;
+                    }
                 }
-            } else if peptide_mass > target_mass {
-                to_remove.push(peptide.clone());
+                Ordering::Less => (),
             }
         }
 
@@ -64,18 +67,22 @@ pub fn leaderboard_cyclopeptide_list(
         // Check each peptide
         for peptide in leaderboard.iter() {
             let peptide_mass = peptide.mass();
-            if peptide_mass == target_mass {
-                let peptide_score = score_cyclopeptide(peptide, spectrum)?;
-                if peptide_score > leader_score {
-                    leader_peptides.clear();
-                    leader_peptides.push(peptide.clone());
-                    leader_score = peptide_score;
-                } else if peptide_score == leader_score {
-                    leader_peptides.push(peptide.clone());
+            match peptide_mass.cmp(&target_mass) {
+                Ordering::Greater => to_remove.push(peptide.clone()),
+                Ordering::Equal => {
+                    let peptide_score = score_cyclopeptide(peptide, spectrum)?;
+                    match peptide_score.cmp(&leader_score) {
+                        Ordering::Greater => {
+                            leader_peptides.clear();
+                            leader_peptides.push(peptide.clone());
+                            leader_score = peptide_score;
+                        }
+                        Ordering::Equal => leader_peptides.push(peptide.clone()),
+                        Ordering::Less => (),
+                    }
+                    to_remove.push(peptide.clone());
                 }
-                to_remove.push(peptide.clone());
-            } else if peptide_mass > target_mass {
-                to_remove.push(peptide.clone());
+                Ordering::Less => (),
             }
         }
 

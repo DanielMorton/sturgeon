@@ -1,4 +1,5 @@
 use crate::utils::InvalidNucleotideError;
+use std::cmp::Ordering;
 use std::error::Error;
 
 fn skew_score(c: char) -> Result<i32, InvalidNucleotideError> {
@@ -24,13 +25,14 @@ pub(crate) fn minimum_skew(genome: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     for (i, c) in genome.chars().enumerate() {
         current_score += skew_score(c)?;
 
-        if current_score < min_score {
-            // New minimum found, clear previous positions
-            min_score = current_score;
-            positions.clear();
-            positions.push(i + 1);
-        } else if current_score == min_score {
-            positions.push(i + 1);
+        match current_score.cmp(&min_score) {
+            Ordering::Greater => (),
+            Ordering::Equal => positions.push(i + 1),
+            Ordering::Less => {
+                min_score = current_score;
+                positions.clear();
+                positions.push(i + 1)
+            }
         }
     }
 

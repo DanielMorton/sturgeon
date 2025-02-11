@@ -53,7 +53,7 @@ fn greedy_motif_search_laplace(
 
         // Find most probable motifs for other DNA strands
         for motif in dna.iter().skip(1) {
-            let new_motif = profile_most_probable_kmer(&motif, k, &profile)?;
+            let new_motif = profile_most_probable_kmer(motif, k, &profile)?;
             motifs.push(new_motif);
             profile = motif_to_profile(&motifs, laplace)?;
         }

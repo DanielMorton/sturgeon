@@ -17,11 +17,11 @@ fn edit_distance(s: &str, t: &str) -> Result<usize, Box<dyn Error>> {
     let t_chars = t.chars().collect::<Vec<_>>();
 
     // Process row by row
-    for j in 0..t_chars.len() {
+    for (j, &t_char) in t_chars.iter().enumerate() {
         curr_row[0] = j + 1;
 
-        for i in 0..s_chars.len() {
-            let substitution_cost = if s_chars[i] == t_chars[j] { 0 } else { 1 };
+        for (i, &s_char) in s_chars.iter().enumerate() {
+            let substitution_cost = if s_char == t_char { 0 } else { 1 };
             curr_row[i + 1] = min(
                 min(
                     curr_row[i] + 1,     // insertion

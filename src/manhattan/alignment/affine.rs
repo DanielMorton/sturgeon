@@ -133,7 +133,7 @@ where
     let mut align2 = String::new();
     let mut i = s.len();
     let mut j = t.len();
-    let mut current_matrix = score_matrix.clone();
+    let mut current_matrix = *score_matrix;
     if current_matrix == Direction::Diagonal {
         current_matrix = backtrack.diagonal[i][j]
     } else if current_matrix == Direction::Up {

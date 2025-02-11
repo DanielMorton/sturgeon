@@ -25,8 +25,8 @@ fn build_edge_dict(
 
 /// Perform two-break operation on genome
 fn get_new_genome(edges: &[(i32, i32)]) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
-    let nodes_id = group_nodes_pairs(&edges)?;
-    let mut edge_dict = build_edge_dict(&edges, &nodes_id)?;
+    let nodes_id = group_nodes_pairs(edges)?;
+    let mut edge_dict = build_edge_dict(edges, &nodes_id)?;
 
     let mut nodes_dict = HashMap::new();
 
@@ -75,8 +75,8 @@ fn edge_from_nontrivial_cycle(
         return Ok(Vec::new());
     }
 
-    let edge_dict = build_edge_dict(&edges, &node_parents)?;
-    let red_edge_dict = build_edge_dict(&red_edges, &node_parents)?;
+    let edge_dict = build_edge_dict(edges, &node_parents)?;
+    let red_edge_dict = build_edge_dict(red_edges, &node_parents)?;
 
     // Process edges and find first valid blue edge
     let (edge, id) = blue_edges

@@ -76,9 +76,9 @@ where
         }
     }
 
-    for j in 1..=t.len() {
-        if current_row[j] > max_score {
-            max_score = current_row[j];
+    for (j, &score) in current_row.iter().enumerate().take(t.len() + 1).skip(1) {
+        if score > max_score {
+            max_score = score;
             max_j = j;
         }
     }

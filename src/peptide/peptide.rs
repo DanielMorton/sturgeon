@@ -1,6 +1,7 @@
 use crate::utils::vec_to_count;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use std::fmt::{Display, Formatter};
 
 #[derive(Clone, Debug, Eq, PartialEq, Hash)]
 pub struct Peptide {
@@ -36,14 +37,6 @@ impl Peptide {
         self.sequence.iter().sum()
     }
 
-    pub fn to_string(&self) -> String {
-        self.sequence
-            .iter()
-            .map(|m| m.to_string())
-            .collect::<Vec<_>>()
-            .join("-")
-    }
-
     pub fn get_cyclospectrum(&self) -> Result<Vec<usize>, Box<dyn Error>> {
         let mut spectrum = vec![0]; // Start with mass 0
 
@@ -74,6 +67,20 @@ impl Peptide {
         }
         spectrum.sort();
         Ok(spectrum)
+    }
+}
+
+impl Display for Peptide {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.sequence
+                .iter()
+                .map(|m| m.to_string())
+                .collect::<Vec<_>>()
+                .join("-")
+        )
     }
 }
 
@@ -134,7 +141,7 @@ pub fn cyclopeptide_sequencing(
         for peptide in candidates {
             let mass = peptide.mass();
             if mass == target_mass {
-                if &peptide.get_cyclospectrum()? == spectrum {
+                if peptide.get_cyclospectrum()? == spectrum {
                     final_peptides.push(peptide.to_string());
                 }
             } else if mass < target_mass && is_consistent(&peptide, &target_freq)? {
