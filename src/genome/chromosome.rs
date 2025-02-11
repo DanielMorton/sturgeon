@@ -1,5 +1,6 @@
-use std::collections::HashSet;
+use num::Num;
 use std::error::Error;
+use std::ops::Neg;
 
 pub(crate) fn chromosome_to_cycle(chromosome: &[i32]) -> Result<Vec<i32>, Box<dyn Error>> {
     Ok(chromosome
@@ -29,30 +30,40 @@ pub(crate) fn cycle_to_chromosome(nodes: &[i32]) -> Result<Vec<i32>, Box<dyn Err
 }
 
 /// Generate colored edges for a genome
-pub(crate) fn colored_edges(genome: &[Vec<i32>]) -> Result<HashSet<(i32, i32)>, Box<dyn Error>> {
-    let mut edges = HashSet::new();
+pub(crate) fn colored_edges(genome: &[Vec<i32>]) -> Result<Vec<(i32, i32)>, Box<dyn Error>> {
+    let mut edges = Vec::new();
 
     for chromosome in genome {
         let mut nodes = chromosome_to_cycle(chromosome)?;
-        println!("{:?}", nodes);
         nodes.push(nodes[0]);
 
         for j in 0..chromosome.len() {
-            edges.insert((nodes[2 * j + 1], nodes[2 * j + 2]));
+            edges.push((nodes[2 * j + 1], nodes[2 * j + 2]));
         }
     }
+    edges.sort();
 
     Ok(edges)
 }
 
-fn reverse_chromosome(chromosome: &[i32]) -> Result<Vec<i32>, Box<dyn Error>> {
+fn reverse_chromosome<T>(chromosome: &[T]) -> Result<Vec<T>, Box<dyn Error>>
+where
+    T: Copy + Neg<Output = T>,
+{
     let mut reverse_chromosome = chromosome.iter().map(|&x| -x).collect::<Vec<_>>();
     reverse_chromosome.reverse();
     Ok(reverse_chromosome)
 }
 
-fn sort_chromosomme(chromosome: &[i32]) -> Result<Vec<i32>, Box<dyn Error>> {
-    let min_gene = chromosome.iter().map(|x| x.abs()).min().unwrap();
+fn sort_chromosomme<T>(chromosome: &[T]) -> Result<Vec<T>, Box<dyn Error>>
+where
+    T: Copy + PartialEq + Neg<Output = T> + Num + Ord,
+{
+    let min_gene = chromosome
+        .iter()
+        .map(|&x| if x > T::zero() { x } else { -x })
+        .min()
+        .unwrap();
     if chromosome.contains(&min_gene) {
         let pos = chromosome.iter().position(|&x| x == min_gene).unwrap();
         let mut sorted = chromosome[pos..].to_owned();
@@ -65,8 +76,10 @@ fn sort_chromosomme(chromosome: &[i32]) -> Result<Vec<i32>, Box<dyn Error>> {
 }
 
 pub(crate) fn sort_genome(genome: &[Vec<i32>]) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
-    genome
+    let mut sorted = genome
         .iter()
         .map(|c| sort_chromosomme(c))
-        .collect::<Result<Vec<_>, Box<dyn Error>>>()
+        .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
+    sorted.sort();
+    Ok(sorted)
 }

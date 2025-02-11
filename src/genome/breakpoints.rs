@@ -25,6 +25,17 @@ fn count_breakpoints(permutation: &[i32]) -> Result<usize, Box<dyn Error>> {
     Ok(breakpoints)
 }
 
+pub(crate) fn make_breakpoints_graph<T: Clone>(
+    red_edges: &[(T, T)],
+    blue_edges: &[(T, T)],
+) -> Result<Vec<(T, T)>, Box<dyn Error>> {
+    Ok(red_edges
+        .iter()
+        .cloned()
+        .chain(blue_edges.iter().cloned())
+        .collect::<Vec<_>>())
+}
+
 mod tests {
     use crate::genome::breakpoints::count_breakpoints;
     use std::error::Error;

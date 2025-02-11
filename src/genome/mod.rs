@@ -1,5 +1,6 @@
 mod breakpoints;
 mod chromosome;
+mod cluster;
 mod greedy;
 mod path;
 mod two_break;
