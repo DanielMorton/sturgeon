@@ -75,7 +75,6 @@ fn edge_from_nontrivial_cycle(
         return Ok(Vec::new());
     }
 
-    // Pre-allocate dictionaries with estimated capacities
     let edge_dict = build_edge_dict(&edges, &node_parents)?;
     let red_edge_dict = build_edge_dict(&red_edges, &node_parents)?;
 
