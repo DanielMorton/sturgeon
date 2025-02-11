@@ -2,13 +2,11 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
 /// Creates a graph representation from two sets of integer blocks
-fn make_graph(p: &[Vec<i32>], q: &[Vec<i32>]) -> Result<HashMap<i32, HashSet<i32>>, Box<dyn Error>> {
-    // Pre-calculate capacity for better performance
-    let total_blocks: usize = p.iter().chain(q.iter())
-        .map(|block| block.len())
-        .sum();
-
-    let mut edges = HashMap::with_capacity(total_blocks * 2);
+pub fn make_graph(
+    p: &[Vec<i32>],
+    q: &[Vec<i32>],
+) -> Result<HashMap<i32, HashSet<i32>>, Box<dyn Error>> {
+    let mut edges = HashMap::new();
 
     // Initialize edges
     for block in p.iter().chain(q.iter()) {
@@ -35,9 +33,7 @@ fn make_graph(p: &[Vec<i32>], q: &[Vec<i32>]) -> Result<HashMap<i32, HashSet<i32
 
 /// Calculates the two-break distance between two arrangements
 pub fn two_break_distance(p: &[Vec<i32>], q: &[Vec<i32>]) -> Result<usize, Box<dyn Error>> {
-    let blocks = p.iter()
-        .map(|block| block.len())
-        .sum::<usize>();
+    let blocks = p.iter().map(|block| block.len()).sum::<usize>();
 
     let mut edges = make_graph(p, q)?;
     let mut cycles = 0;
@@ -75,14 +71,30 @@ pub fn two_break_distance(p: &[Vec<i32>], q: &[Vec<i32>]) -> Result<usize, Box<d
     Ok(blocks - cycles)
 }
 
+/// Perform two-break operation on graph
+pub(crate) fn two_break_on_graph(
+    edges: &mut HashSet<(i32, i32)>,
+    breaks: &[(i32, i32)],
+) -> Result<(), Box<dyn Error>> {
+    let (i0, i1, j0, j1) = (breaks[0].0, breaks[0].1, breaks[1].0, breaks[1].1);
+    edges.remove(&(i0, i1));
+    edges.remove(&(i1, i0));
+    edges.remove(&(j0, j1));
+    edges.remove(&(j1, j0));
+
+    edges.insert((i0, j0));
+    edges.insert((i1, j1));
+    Ok(())
+}
+
 mod tests {
-    use std::error::Error;
     use crate::genome::two_break::two_break_distance;
+    use std::error::Error;
 
     #[test]
     fn test_two_break_distance1() -> Result<(), Box<dyn Error>> {
         let p = vec![vec![1, 2, 3, 4, 5, 6]];
-        let q = vec![vec![1, -3, -6, -5], vec![2 -4]];
+        let q = vec![vec![1, -3, -6, -5], vec![2 - 4]];
 
         assert_eq!(two_break_distance(&p, &q)?, 3);
         Ok(())

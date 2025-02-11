@@ -17,7 +17,8 @@ fn count_breakpoints(permutation: &[i32]) -> Result<usize, Box<dyn Error>> {
     }
 
     // Count breakpoints in the rest of the permutation
-    breakpoints += permutation.windows(2)
+    breakpoints += permutation
+        .windows(2)
         .filter(|window| window[1] != window[0] + 1)
         .count();
 
@@ -25,8 +26,8 @@ fn count_breakpoints(permutation: &[i32]) -> Result<usize, Box<dyn Error>> {
 }
 
 mod tests {
-    use std::error::Error;
     use crate::genome::breakpoints::count_breakpoints;
+    use std::error::Error;
 
     #[test]
     fn test_count_breakpoints1() -> Result<(), Box<dyn Error>> {

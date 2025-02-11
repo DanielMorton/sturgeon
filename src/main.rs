@@ -2,6 +2,7 @@
 
 use crate::cyclo::{run_convo_cyclo, run_cyclo, run_leader_cyclo, CycloArgs};
 use crate::dosr::{run_median, run_random, DosRArgs};
+use crate::genome_ex::run;
 use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
@@ -10,6 +11,7 @@ use std::error::Error;
 mod cyclo;
 mod dosr;
 mod genome;
+mod genome_ex;
 mod graph;
 mod manhattan;
 mod motif;
@@ -36,6 +38,8 @@ enum Commands {
     DosRMedian(DosRArgs),
     #[command(name = "dosr-random")]
     DosRRandom(DosRArgs),
+    #[command(name = "genome")]
+    Genome,
     #[command(name = "leaderboard")]
     LeaderBoardCyclopeptideSequencing(CycloArgs),
     #[command(name = "ori")]
@@ -51,6 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::CyclopeptideSequencing(args) => run_cyclo(args),
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),
+        Commands::Genome => run(),
         Commands::LeaderBoardCyclopeptideSequencing(args) => run_leader_cyclo(args),
         Commands::Ori(args) => run_ori(args),
         Commands::Translate(args) => run_translation(args),

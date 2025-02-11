@@ -54,13 +54,13 @@ mod tests {
         let spectrum = vec![-3, 4, 1, 5, -2];
         let sorting = greedy_sorting(&spectrum)?;
         let ans = vec![
-            vec![-1, -4,  3,  5, -2],
-            vec![ 1, -4,  3,  5, -2],
-            vec![ 1,  2, -5, -3,  4],
-            vec![ 1,  2,  3,  5,  4],
-            vec![ 1,  2,  3, -4, -5],
-            vec![ 1,  2,  3,  4, -5],
-            vec![ 1,  2,  3,  4,  5],
+            vec![-1, -4, 3, 5, -2],
+            vec![1, -4, 3, 5, -2],
+            vec![1, 2, -5, -3, 4],
+            vec![1, 2, 3, 5, 4],
+            vec![1, 2, 3, -4, -5],
+            vec![1, 2, 3, 4, -5],
+            vec![1, 2, 3, 4, 5],
         ];
         assert_eq!(sorting, ans);
         Ok(())
@@ -70,9 +70,7 @@ mod tests {
     fn test_greedy_sorting2() -> Result<(), Box<dyn Error>> {
         let spectrum = vec![1, 2, -3, 4, 5];
         let sorting = greedy_sorting(&spectrum)?;
-        let ans = vec![
-            vec![1, 2, 3, 4, 5]
-        ];
+        let ans = vec![vec![1, 2, 3, 4, 5]];
         assert_eq!(sorting, ans);
         Ok(())
     }
@@ -83,8 +81,8 @@ mod tests {
         let sorting = greedy_sorting(&spectrum)?;
         let ans = vec![
             vec![1, -2, -5, -4, -3],
-            vec![1,  2, -5, -4, -3],
-            vec![1,  2,  3,  4,  5]
+            vec![1, 2, -5, -4, -3],
+            vec![1, 2, 3, 4, 5],
         ];
         assert_eq!(sorting, ans);
         Ok(())
@@ -96,9 +94,9 @@ mod tests {
         let sorting = greedy_sorting(&spectrum)?;
         let ans = vec![
             vec![-1, -3, 2, 4],
-            vec![ 1, -3, 2, 4],
-            vec![ 1, -2, 3, 4],
-            vec![ 1,  2, 3, 4]
+            vec![1, -3, 2, 4],
+            vec![1, -2, 3, 4],
+            vec![1, 2, 3, 4],
         ];
         assert_eq!(sorting, ans);
         Ok(())
@@ -110,9 +108,9 @@ mod tests {
         let sorting = greedy_sorting(&spectrum)?;
         let ans = vec![
             vec![-1, -2, -3],
-            vec![ 1, -2, -3],
-            vec![ 1,  2, -3],
-            vec![ 1,  2,  3]
+            vec![1, -2, -3],
+            vec![1, 2, -3],
+            vec![1, 2, 3],
         ];
         assert_eq!(sorting, ans);
         Ok(())
