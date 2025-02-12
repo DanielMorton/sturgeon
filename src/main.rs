@@ -6,6 +6,7 @@ use crate::ori::{run_ori, OriArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
+use crate::synteny::{run_synteny, SyntenyArgs};
 
 mod cyclo;
 mod dosr;
@@ -18,6 +19,7 @@ mod peptide;
 mod translate;
 mod translation;
 mod utils;
+mod synteny;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -40,6 +42,8 @@ enum Commands {
     LeaderBoardCyclopeptideSequencing(CycloArgs),
     #[command(name = "ori")]
     Ori(OriArgs),
+    #[command(name = "synteny")]
+    Synteny(SyntenyArgs),
     #[command(name = "translate")]
     Translate(TranslateArgs),
 }
@@ -53,6 +57,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::DosRRandom(args) => run_random(args),
         Commands::LeaderBoardCyclopeptideSequencing(args) => run_leader_cyclo(args),
         Commands::Ori(args) => run_ori(args),
+        Commands::Synteny(args) => run_synteny(args),
         Commands::Translate(args) => run_translation(args),
     }
 }

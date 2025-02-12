@@ -2,7 +2,7 @@ use crate::utils::dna_complement;
 use std::collections::HashMap;
 use std::error::Error;
 
-fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<dyn Error>> {
+pub fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<dyn Error>> {
     let mut kmer_positions = HashMap::new();
     let mut kmer_locs = Vec::new();
 
@@ -19,14 +19,14 @@ fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<d
     for j in 0..=t.len() - k {
         let kmer = &t[j..j + k];
         if let Some(positions) = kmer_positions.get(kmer) {
-            for &pos_i in positions {
-                kmer_locs.push((pos_i, j));
+            for &i in positions {
+                kmer_locs.push((i, j));
             }
         }
         let complement = dna_complement(&kmer)?;
         if let Some(positions) = kmer_positions.get(&complement) {
-            for &pos_i in positions {
-                kmer_locs.push((pos_i, j));
+            for &i in positions {
+                kmer_locs.push((i, j));
             }
         }
     }
@@ -37,9 +37,24 @@ fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<d
     Ok(kmer_locs)
 }
 
+pub fn synteny_to_chromosome(synteny: &[(usize, usize)], k: usize, s: &str, t: &str) -> Result<(Vec<i32>, Vec<i32>), Box<dyn Error>> {
+    let chromosome1 = synteny.iter().enumerate().map(|(i, _)| i as i32 + 1).collect::<Vec<_>>();
+    let mut chro2 = synteny.iter().enumerate()
+        .map(|(i, &(s1, s2))| {
+            if s[s1..s1+k] == t[s2 .. s2+k] {
+                (s2, i as i32 + 1)
+            } else {
+                (s2, -(i as i32 + 1))
+            }
+        }).collect::<Vec<_>>();
+    chro2.sort();
+    let chromosome2 = chro2.into_iter().map(|(_, i)| i).collect::<Vec<_>>();
+    Ok((chromosome1, chromosome2))
+}
+
 #[cfg(test)]
 mod tests {
-    use crate::motif::shared::shared_kmers;
+    use crate::motif::synteny::shared_kmers;
     use std::error::Error;
 
     #[test]
