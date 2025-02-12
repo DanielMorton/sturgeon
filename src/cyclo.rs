@@ -45,7 +45,7 @@ pub fn run_leader_cyclo(args: CycloArgs) -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     let cyclo = leaderboard_cyclopeptide_list(&spectrum, &amino_masses, n)?;
     for c in cyclo {
-        println!("{}", c.to_string());
+        println!("{}", c);
     }
     print_hms(&start);
     Ok(())
@@ -69,7 +69,7 @@ pub fn run_convo_cyclo(args: CycloArgs) -> Result<(), Box<dyn Error>> {
     let start = Instant::now();
     let cyclo = convolution_cyclopeptide_list(&spectrum, m, n)?;
     for c in cyclo[..86].iter() {
-        print!("{} ", c.to_string());
+        print!("{} ", c);
     }
     println!();
     print_hms(&start);

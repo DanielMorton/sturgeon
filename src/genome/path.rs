@@ -6,9 +6,6 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::hash::Hash;
 
-/// Group nodes using disjoint set (union-find) data structure
-
-/// Build edge dictionary for genome rearrangement
 fn build_edge_dict<T>(
     edges: &[(T, T)],
     node_parents: &HashMap<T, T>,
