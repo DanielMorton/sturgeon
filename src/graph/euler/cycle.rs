@@ -1,6 +1,6 @@
 use crate::graph::err::EmptyGraphError;
-use std::error::Error;
 use crate::utils::Graph;
+use std::error::Error;
 
 pub fn eulerian_cycle<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
 where

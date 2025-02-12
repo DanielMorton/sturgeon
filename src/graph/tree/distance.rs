@@ -1,10 +1,16 @@
+use crate::utils::WeightedGraph;
 use std::collections::{HashSet, VecDeque};
 use std::error::Error;
 use std::hash::Hash;
-use crate::utils::WeightedGraph;
 
-fn find_distance<T>(graph: WeightedGraph<T, usize>, start: T, end: T) -> Result<usize, Box<dyn Error>>
-where T: Copy + Eq + Hash {
+fn find_distance<T>(
+    graph: &WeightedGraph<T, usize>,
+    start: T,
+    end: T,
+) -> Result<usize, Box<dyn Error>>
+where
+    T: Copy + Eq + Hash,
+{
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back((start, 0));
@@ -25,4 +31,19 @@ where T: Copy + Eq + Hash {
         }
     }
     panic!("Not a valid tree.")
+}
+
+fn compute_distances<T>(graph: &WeightedGraph<T, usize>) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+    let mut distances = vec![vec![0; graph.len()]; graph.len()];
+
+    for i in 0..graph.len() {
+        for j in 0..graph.len() {
+            if i < j {
+                distances[i][j] = find_distance(graph, i, j)?;
+                distances[j][i] = distances[i][j]
+            }
+        }
+    }
+
+    Ok(distances)
 }

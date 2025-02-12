@@ -37,16 +37,28 @@ pub fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, B
     Ok(kmer_locs)
 }
 
-pub fn synteny_to_chromosome(synteny: &[(usize, usize)], k: usize, s: &str, t: &str) -> Result<(Vec<i32>, Vec<i32>), Box<dyn Error>> {
-    let chromosome1 = synteny.iter().enumerate().map(|(i, _)| i as i32 + 1).collect::<Vec<_>>();
-    let mut chro2 = synteny.iter().enumerate()
+pub fn synteny_to_chromosome(
+    synteny: &[(usize, usize)],
+    k: usize,
+    s: &str,
+    t: &str,
+) -> Result<(Vec<i32>, Vec<i32>), Box<dyn Error>> {
+    let chromosome1 = synteny
+        .iter()
+        .enumerate()
+        .map(|(i, _)| i as i32 + 1)
+        .collect::<Vec<_>>();
+    let mut chro2 = synteny
+        .iter()
+        .enumerate()
         .map(|(i, &(s1, s2))| {
-            if s[s1..s1+k] == t[s2 .. s2+k] {
+            if s[s1..s1 + k] == t[s2..s2 + k] {
                 (s2, i as i32 + 1)
             } else {
                 (s2, -(i as i32 + 1))
             }
-        }).collect::<Vec<_>>();
+        })
+        .collect::<Vec<_>>();
     chro2.sort();
     let chromosome2 = chro2.into_iter().map(|(_, i)| i).collect::<Vec<_>>();
     Ok((chromosome1, chromosome2))

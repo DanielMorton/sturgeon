@@ -1,5 +1,5 @@
-use std::error::Error;
 use crate::utils::Graph;
+use std::error::Error;
 
 pub fn debruijn_string(text: &str, kmer_length: usize) -> Result<Graph<String>, Box<dyn Error>> {
     let mut graph = Graph::new();

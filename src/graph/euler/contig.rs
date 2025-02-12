@@ -1,10 +1,10 @@
 use crate::graph::debruijn::debruijn_kmers;
 use crate::graph::graph::Contig;
 use crate::graph::reconstruction::genome_path;
+use crate::utils::Graph;
 use std::collections::HashSet;
 use std::error::Error;
 use std::hash::Hash;
-use crate::utils::Graph;
 
 pub fn maximal_non_branching_paths<T>(graph: &Graph<T>) -> Result<Vec<Contig<T>>, Box<dyn Error>>
 where

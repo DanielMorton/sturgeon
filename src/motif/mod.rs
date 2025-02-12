@@ -6,8 +6,8 @@ mod mismatch;
 mod neighbors;
 mod pattern;
 mod search;
-mod synteny;
 mod skew;
+mod synteny;
 
 pub(super) use mismatch::frequent_words_with_mismatches_reverse_complement;
 pub(super) use search::{

@@ -1,10 +1,10 @@
+use crate::genome::two_break_distance;
+use crate::motif::{shared_kmers, synteny_to_chromosome};
+use crate::utils::{print_hms, Fasta};
+use clap::{value_parser, Parser};
 use std::error::Error;
 use std::fs;
 use std::time::Instant;
-use clap::{Parser, value_parser};
-use crate::genome::two_break_distance;
-use crate::motif::{shared_kmers, synteny_to_chromosome};
-use crate::utils::{Fasta, print_hms};
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -16,7 +16,7 @@ pub struct SyntenyArgs {
     file2: String,
 
     #[arg(short = 'k', required = true, value_parser = value_parser!(usize))]
-    kmer_length: usize
+    kmer_length: usize,
 }
 pub fn run_synteny(args: SyntenyArgs) -> Result<(), Box<dyn Error>> {
     let dna1 = fs::read_to_string(args.file1)?;
@@ -28,7 +28,11 @@ pub fn run_synteny(args: SyntenyArgs) -> Result<(), Box<dyn Error>> {
     println!("{}", syn_matches.len());
     print_hms(&start);
 
-    let (chromosome1, chromosome2) = synteny_to_chromosome(&syn_matches, args.kmer_length, &dna1, &dna2.text)?;
-    println!("Distance {}", two_break_distance(&vec![chromosome1.clone()],&vec![chromosome2.clone()])?);
+    let (chromosome1, chromosome2) =
+        synteny_to_chromosome(&syn_matches, args.kmer_length, &dna1, &dna2.text)?;
+    println!(
+        "Distance {}",
+        two_break_distance(&vec![chromosome1.clone()], &vec![chromosome2.clone()])?
+    );
     Ok(())
 }

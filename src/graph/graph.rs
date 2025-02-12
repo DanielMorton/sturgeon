@@ -1,5 +1,5 @@
-use std::error::Error;
 use crate::utils::Graph;
+use std::error::Error;
 
 pub type Contig<T> = Vec<T>;
 
