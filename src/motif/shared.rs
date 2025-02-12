@@ -4,7 +4,7 @@ use std::error::Error;
 
 fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<dyn Error>> {
     let mut kmer_positions = HashMap::new();
-    let mut result = Vec::new();
+    let mut kmer_locs = Vec::new();
 
     // Store positions of k-mers from first string
     for i in 0..=s.len() - k {
@@ -20,20 +20,21 @@ fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, Box<d
         let kmer = &t[j..j + k];
         if let Some(positions) = kmer_positions.get(kmer) {
             for &pos_i in positions {
-                result.push((pos_i, j));
+                kmer_locs.push((pos_i, j));
             }
         }
         let complement = dna_complement(&kmer)?;
         if let Some(positions) = kmer_positions.get(&complement) {
             for &pos_i in positions {
-                result.push((pos_i, j));
+                kmer_locs.push((pos_i, j));
             }
         }
     }
 
-    result.sort();
+    kmer_locs.sort();
+    kmer_locs.dedup();
 
-    Ok(result)
+    Ok(kmer_locs)
 }
 
 #[cfg(test)]
