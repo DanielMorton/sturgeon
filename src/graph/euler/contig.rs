@@ -1,8 +1,10 @@
 use crate::graph::debruijn::debruijn_kmers;
-use crate::graph::graph::{Contig, Graph};
+use crate::graph::graph::Contig;
 use crate::graph::reconstruction::genome_path;
 use std::collections::HashSet;
 use std::error::Error;
+use std::hash::Hash;
+use crate::utils::Graph;
 
 pub fn maximal_non_branching_paths<T>(graph: &Graph<T>) -> Result<Vec<Contig<T>>, Box<dyn Error>>
 where
@@ -38,11 +40,11 @@ fn non_isolate_paths<T>(
     visited: &mut HashSet<T>,
 ) -> Result<(), Box<dyn Error>>
 where
-    T: Clone + Eq + std::hash::Hash,
+    T: Clone + Eq + Hash,
 {
     // Process non-isolate paths
     for start_node in graph.keys() {
-        if !is_one_in_out(graph, start_node)? {
+        if !is_one_in_out::<T>(graph, start_node)? {
             if let Some(edges) = graph.get(start_node) {
                 for next_node in edges {
                     let mut contig = Contig::new();

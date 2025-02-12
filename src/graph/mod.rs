@@ -5,3 +5,4 @@ mod graph;
 mod kmer;
 mod overlap;
 mod reconstruction;
+mod tree;

@@ -1,6 +1,6 @@
-use crate::graph::graph::Graph;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use crate::utils::Graph;
 
 fn overlap_graph(patterns: &[String]) -> Result<Graph<String>, Box<dyn Error>> {
     let p = patterns[0].len();

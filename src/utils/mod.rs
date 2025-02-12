@@ -25,3 +25,4 @@ pub use union::{find_parent, union};
 pub use vec::vec_to_count;
 
 pub type Graph<T> = HashMap<T, Vec<T>>;
+pub type WeightedGraph<T, S> = HashMap<T, Vec<(T, S)>>;

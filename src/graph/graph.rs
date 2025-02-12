@@ -1,8 +1,7 @@
-use std::collections::HashMap;
 use std::error::Error;
+use crate::utils::Graph;
 
 pub type Contig<T> = Vec<T>;
-pub type Graph<T> = HashMap<T, Vec<T>>;
 
 pub(crate) fn reverse<T>(graph: &Graph<T>) -> Result<Graph<T>, Box<dyn Error>>
 where
