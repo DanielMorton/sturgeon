@@ -9,7 +9,7 @@ fn kmer_composition(text: &str, kmer_length: usize) -> Result<Vec<String>, Box<d
         .map(|s| s.deref().to_owned())
         .collect::<Vec<_>>())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::kmer::kmer_composition;
     use std::error::Error;

@@ -39,7 +39,7 @@ fn find_clumps(
 
     Ok(patterns.into_iter().collect())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::clumps::find_clumps;
     use std::error::Error;

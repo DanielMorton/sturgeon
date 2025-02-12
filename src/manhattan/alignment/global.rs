@@ -1,7 +1,6 @@
 use crate::manhattan::alignment::alignment::AlignmentResult;
 use crate::manhattan::alignment::backtrack::backtrack_alignment;
 use crate::manhattan::direction::Direction;
-use crate::utils::transpose;
 use num::Num;
 use std::error::Error;
 use std::fmt::Debug;
@@ -93,7 +92,7 @@ where
     // Backtrack to find the alignment
     backtrack_alignment(&backtrack, s, t, score)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::manhattan::alignment::alignment::AlignmentResult;
     use crate::manhattan::alignment::global::global_alignment;

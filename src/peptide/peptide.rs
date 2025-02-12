@@ -151,7 +151,7 @@ pub fn cyclopeptide_sequencing(
     }
     Ok(final_peptides)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::mass::make_mass_vector;
     use crate::peptide::peptide::cyclopeptide_sequencing;

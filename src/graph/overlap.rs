@@ -31,7 +31,7 @@ fn overlap_graph(patterns: &[String]) -> Result<Graph<String>, Box<dyn Error>> {
     }
     Ok(kmer_graph)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::overlap::overlap_graph;
     use std::collections::HashMap;

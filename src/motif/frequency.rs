@@ -55,7 +55,7 @@ pub fn most_frequent_words(text: &str, kmer_length: usize) -> Vec<String> {
     let max_frequency = frequencies.values().max().copied().unwrap_or(0);
     frequent_words(text, &frequencies, kmer_length, max_frequency)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::frequency::most_frequent_words;
 

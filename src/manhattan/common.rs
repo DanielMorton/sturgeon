@@ -30,7 +30,7 @@ fn lcs(s: &str, t: &str) -> Result<String, Box<dyn Error>> {
     let backtrack = build_backtrack(s, t)?;
     output_lcs(&backtrack, s, s.len(), t.len())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::manhattan::common::lcs;
     use std::error::Error;

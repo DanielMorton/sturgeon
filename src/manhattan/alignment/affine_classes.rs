@@ -1,6 +1,5 @@
 use crate::manhattan::direction::Direction;
 use num::{Bounded, Num};
-use std::ops::{Mul, Neg};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AffineScore<T> {

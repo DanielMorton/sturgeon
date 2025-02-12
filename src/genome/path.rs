@@ -136,7 +136,7 @@ pub fn two_break_sorting(
 
     Ok(result)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::genome::path::two_break_sorting;
     use std::error::Error;

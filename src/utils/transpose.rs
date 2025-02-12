@@ -22,7 +22,7 @@ pub fn transpose<T: Clone>(matrix: &[Vec<T>]) -> Result<Vec<Vec<T>>, Box<dyn Err
 
     Ok(transposed)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::utils::transpose;
     use std::error::Error;

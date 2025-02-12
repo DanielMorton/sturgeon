@@ -35,7 +35,7 @@ fn approximate_pattern_count(
 ) -> Result<usize, Box<dyn Error>> {
     Ok(approximate_pattern_matching(text, pattern, max_diff)?.len())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::r#match::{approximate_pattern_count, approximate_pattern_matching};
     use std::error::Error;

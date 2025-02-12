@@ -46,7 +46,7 @@ pub fn all_kmers(kmer_length: usize) -> Result<Vec<String>, Box<dyn Error>> {
         .into_iter()
         .collect::<Vec<_>>())
 }
-
+#[cfg(test)]
 mod test {
     use crate::motif::neighbors::neighbors;
     use crate::utils::DNA;

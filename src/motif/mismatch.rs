@@ -53,7 +53,7 @@ pub fn frequent_words_with_mismatches_reverse_complement(
         .map(|(pattern, _)| pattern)
         .collect())
 }
-
+#[cfg(test)]
 mod test {
     use crate::motif::mismatch::{
         frequent_words_with_mismatches, frequent_words_with_mismatches_reverse_complement,

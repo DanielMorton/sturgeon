@@ -58,7 +58,7 @@ fn pattern_count_bytes<N: PartialEq + Copy>(text: &[N], pattern: &[N]) -> usize 
 fn pattern_count(text: &str, pattern: &str) -> usize {
     kmp(text, pattern).len()
 }
-
+#[cfg(test)]
 mod tests {
     use crate::utils::kmp::{build_lps, kmp, pattern_count};
 

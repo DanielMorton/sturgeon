@@ -85,7 +85,7 @@ pub(crate) fn two_break_on_graph(
     edges.sort();
     Ok(())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::genome::two_break::two_break_distance;
     use std::error::Error;

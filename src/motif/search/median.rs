@@ -47,7 +47,7 @@ pub fn score_kmer(dna: &[String], kmer: &str) -> Result<usize, Box<dyn Error>> {
         .collect::<Result<Vec<usize>, _>>()?;
     Ok(distances.iter().sum())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::search::median::median_string;
     use std::error::Error;

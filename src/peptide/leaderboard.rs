@@ -129,7 +129,7 @@ pub fn trim(
         .map(|(peptide, _)| peptide.clone())
         .collect())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::leaderboard::leaderboard_cyclopeptide_sequencing;
     use crate::peptide::make_mass_vector;

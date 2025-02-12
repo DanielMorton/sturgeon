@@ -42,7 +42,7 @@ fn count_peptides(target_mass: usize, aa_masses: &[usize]) -> Result<usize, Box<
 
     Ok(dp[target_mass])
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::aa_peptide::count_peptides;
     use crate::peptide::mass::make_mass_vector;

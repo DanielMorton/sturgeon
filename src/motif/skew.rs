@@ -38,7 +38,7 @@ pub(crate) fn minimum_skew(genome: &str) -> Result<Vec<usize>, Box<dyn Error>> {
 
     Ok(positions)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::skew::{minimum_skew, skew_score};
     use std::error::Error;

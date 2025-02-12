@@ -74,7 +74,7 @@ fn sort_values(graph: &mut Graph<String>) -> Result<(), Box<dyn Error>> {
     }
     Ok(())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::debruijn::{debruijn_kmers, debruijn_string};
     use std::collections::HashMap;

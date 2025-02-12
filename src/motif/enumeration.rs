@@ -35,7 +35,7 @@ pub fn motif_enumeration(
 
     Ok(patterns)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::enumeration::motif_enumeration;
     use std::error::Error;

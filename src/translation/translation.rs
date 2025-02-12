@@ -25,7 +25,7 @@ pub fn translate_rna_code(pattern: &str) -> Result<String, Box<dyn Error>> {
     let genetic_code = read_codon()?;
     translate_rna(pattern, &genetic_code)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::translation::translate_rna_code;
     use std::error::Error;

@@ -58,7 +58,7 @@ where
         .map(|(k, _)| k)
         .unwrap_or_else(|| graph.keys().next().unwrap().clone()))
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::euler::path::eulerian_path;
     use std::collections::HashMap;

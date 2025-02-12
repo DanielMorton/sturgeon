@@ -115,7 +115,7 @@ pub fn contig_generation(patterns: &[String]) -> Result<Vec<String>, Box<dyn Err
     contigs.sort();
     Ok(contigs)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::euler::contig::contig_generation;
     use std::error::Error;

@@ -1,5 +1,5 @@
 use crate::peptide::{
-    convolution_cyclopeptide_list, convolution_cyclopeptide_sequencing, cyclopeptide_sequencing,
+    convolution_cyclopeptide_list, cyclopeptide_sequencing,
     leaderboard_cyclopeptide_list, make_mass_vector,
 };
 use crate::utils::print_hms;

@@ -35,7 +35,7 @@ pub(crate) fn make_breakpoints_graph<T: Clone>(
         .chain(blue_edges.iter().cloned())
         .collect::<Vec<_>>())
 }
-
+#[cfg(test)]
 mod tests {
     use crate::genome::breakpoints::count_breakpoints;
     use std::error::Error;

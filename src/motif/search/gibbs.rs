@@ -75,7 +75,7 @@ fn gibbs_sampler(
     }
     Ok(best_motifs)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::search::gibbs::gibbs_sampler;
     use std::error::Error;

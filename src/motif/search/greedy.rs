@@ -70,7 +70,7 @@ fn greedy_motif_search_laplace(
 fn greedy_motif_search(dna: &[String], k: usize) -> Result<Vec<String>, Box<dyn Error>> {
     greedy_motif_search_laplace(dna, k, None)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::search::greedy::{
         greedy_motif_search, greedy_motif_search_laplace, profile_most_probable_kmer,

@@ -1,6 +1,5 @@
 use crate::utils::DNA_INDEX;
 use rand::prelude::SliceRandom;
-use rand::Rng;
 use std::error::Error;
 
 pub fn random_kmer(text: &str, k: usize, profile: &[Vec<f64>]) -> Result<String, Box<dyn Error>> {

@@ -1,6 +1,5 @@
 use crate::peptide::aa_peptide::get_subpeptides;
 use crate::peptide::mass::read_masses;
-use crate::peptide::peptide::Peptide;
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -25,7 +24,7 @@ pub fn generate_spectrum(peptide: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     spectrum.sort();
     Ok(spectrum)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::spectrum::generate_spectrum;
     use std::error::Error;

@@ -182,7 +182,7 @@ where
 
     Ok(AlignmentResult::new(score, &align1, &align2))
 }
-
+#[cfg(test)]
 mod tests {
     use crate::manhattan::alignment::affine::affine_gap_alignment;
     use crate::manhattan::alignment::alignment::AlignmentResult;

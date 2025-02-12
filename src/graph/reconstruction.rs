@@ -56,7 +56,7 @@ fn genome_pair_path(path: &[String], gap: usize) -> Result<String, Box<dyn Error
     result.push_str(&tail[tail.len() - k - gap..]);
     Ok(result)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::reconstruction::{genome_path, string_reconstruction};
     use std::error::Error;

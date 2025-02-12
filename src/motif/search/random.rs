@@ -56,7 +56,7 @@ pub fn randomized_motif_search(
 
     Ok(best_motifs)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::motif::search::random::randomized_motif_search;
     use std::error::Error;

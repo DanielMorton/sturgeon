@@ -40,7 +40,7 @@ pub fn score_linpeptide(peptide: &Peptide, spectrum: &[usize]) -> Result<usize, 
 
     Ok(score)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::mass::read_masses;
     use crate::peptide::peptide::Peptide;

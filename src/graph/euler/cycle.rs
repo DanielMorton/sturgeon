@@ -30,7 +30,7 @@ where
     cycle.reverse();
     Ok(cycle)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::graph::euler::cycle::eulerian_cycle;
     use std::collections::HashMap;

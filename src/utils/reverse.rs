@@ -3,7 +3,6 @@ use crate::utils::dna::DNA_COMPLEMENT_MAP;
 use crate::utils::rna::RNA_COMPLEMENT_MAP;
 use crate::utils::InvalidNucleotidePositionError;
 use std::collections::HashMap;
-use std::error::Error;
 
 fn reverse_complement(
     pattern: &str,
@@ -32,7 +31,7 @@ pub fn dna_complement(pattern: &str) -> Result<String, InvalidNucleotidePosition
 pub fn rna_complement(pattern: &str) -> Result<String, InvalidNucleotidePositionError> {
     reverse_complement(pattern, &RNA_COMPLEMENT_MAP)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::utils::reverse::{dna_complement, InvalidNucleotidePositionError};
     use std::error::Error;

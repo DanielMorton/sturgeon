@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::ops::Neg;
 
 fn sort_reverse(p: &mut [i32]) -> Result<(), Box<dyn Error>> {
     let (mut left, mut right) = (0, p.len() - 1);
@@ -44,7 +43,7 @@ fn greedy_sorting(p: &[i32]) -> Result<Vec<Vec<i32>>, Box<dyn Error>> {
 
     Ok(sorting)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::genome::greedy::greedy_sorting;
     use std::error::Error;

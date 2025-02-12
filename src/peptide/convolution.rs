@@ -160,7 +160,7 @@ pub fn convolution_cyclopeptide_list(
 
     Ok(leader_peptides)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::peptide::convolution::{convolution_cyclopeptide_sequencing, spectral_convolution};
     use std::error::Error;

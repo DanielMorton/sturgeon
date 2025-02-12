@@ -1,5 +1,3 @@
-use std::error::Error;
-use std::fmt::Display;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -42,7 +40,7 @@ pub fn min_hamming_distance(pattern: &str, text: &str) -> Result<usize, LengthMi
 
     Ok(distance)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::utils::hamming::{hamming_distance, min_hamming_distance, LengthMismatchError};
 

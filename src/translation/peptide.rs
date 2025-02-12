@@ -29,7 +29,7 @@ fn find_peptide_encodings(text: &str, peptide: &str) -> Result<Vec<String>, Box<
 
     Ok(result)
 }
-
+#[cfg(test)]
 mod tests {
     use crate::translation::peptide::find_peptide_encodings;
     use std::error::Error;
