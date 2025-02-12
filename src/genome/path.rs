@@ -4,15 +4,17 @@ use crate::genome::cluster::{group_nodes, group_nodes_pairs};
 use crate::genome::two_break::two_break_on_graph;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use std::hash::Hash;
 
 /// Group nodes using disjoint set (union-find) data structure
 
 /// Build edge dictionary for genome rearrangement
-fn build_edge_dict(
-    edges: &[(i32, i32)],
-    node_parents: &HashMap<i32, i32>,
-) -> Result<HashMap<i32, HashMap<i32, i32>>, Box<dyn Error>> {
-    let mut edge_dict: HashMap<i32, HashMap<i32, i32>> = HashMap::new();
+fn build_edge_dict<T>(
+    edges: &[(T, T)],
+    node_parents: &HashMap<T, T>,
+) -> Result<HashMap<T, HashMap<T, T>>, Box<dyn Error>>
+where T: Copy + Eq + Hash {
+    let mut edge_dict: HashMap<T, HashMap<T, T>> = HashMap::new();
 
     for &(a, b) in edges {
         let id = *node_parents.get(&a).unwrap();
