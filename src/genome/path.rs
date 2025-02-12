@@ -13,7 +13,9 @@ fn build_edge_dict<T>(
     edges: &[(T, T)],
     node_parents: &HashMap<T, T>,
 ) -> Result<HashMap<T, HashMap<T, T>>, Box<dyn Error>>
-where T: Copy + Eq + Hash {
+where
+    T: Copy + Eq + Hash,
+{
     let mut edge_dict: HashMap<T, HashMap<T, T>> = HashMap::new();
 
     for &(a, b) in edges {
