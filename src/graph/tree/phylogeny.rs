@@ -51,7 +51,7 @@ fn add_node_at_distance(
     Ok(v)
 }
 
-fn additive_phylogeny(
+pub fn additive_phylogeny(
     matrix: &[Vec<usize>],
     inner_vertex: &mut usize,
 ) -> Result<WeightedGraph<usize, usize>, Box<dyn Error>> {

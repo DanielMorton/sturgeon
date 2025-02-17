@@ -6,3 +6,5 @@ mod kmer;
 mod overlap;
 mod reconstruction;
 mod tree;
+
+pub use tree::additive_phylogeny;
