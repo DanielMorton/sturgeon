@@ -20,12 +20,14 @@ fn find_splitting_pair(d: &[Vec<usize>]) -> Result<(usize, usize, usize), Box<dy
 
 fn additive_phylogeny(
     matrix: &[Vec<usize>],
-    inner_vertex: &mut usize
+    inner_vertex: &mut usize,
 ) -> Result<WeightedGraph<usize, usize>, Box<dyn Error>> {
     // Base case: tree with two nodes
     if matrix.len() == 2 {
-        return Ok(HashMap::from([(0, vec![(1, matrix[0][1])]),
-            (1, vec![(0, matrix[1][0])])]));
+        return Ok(HashMap::from([
+            (0, vec![(1, matrix[0][1])]),
+            (1, vec![(0, matrix[1][0])]),
+        ]));
     }
     let matrix_len = matrix.len();
 
@@ -46,7 +48,7 @@ fn additive_phylogeny(
     println!("{:?}", matrix_prime);
     // Find i,k such that Di,k = Di,n + Dn,k
     let (i, k, x) = find_splitting_pair(&matrix_prime)?;
-    println!("i {} k {} x {}",i,k,x);
+    println!("i {} k {} x {}", i, k, x);
 
     // Remove last row and column to create smaller matrix
     matrix_prime = matrix_prime
@@ -59,7 +61,7 @@ fn additive_phylogeny(
     let mut graph = additive_phylogeny(&matrix_prime, inner_vertex)?;
 
     // Find the attachment point
-    let v = find_node_at_distance(&graph, i, k, x).unwrap_or_else( ||{
+    let v = find_node_at_distance(&graph, i, k, x).unwrap_or_else(|| {
         let v = *inner_vertex;
         *inner_vertex += 1;
 
@@ -68,12 +70,16 @@ fn additive_phylogeny(
         let (u, w) = find_edge_to_split(&graph, &path, x).unwrap();
 
         // Remove old edge
-        let edge_weight = graph.get(&u).unwrap().iter()
+        let edge_weight = graph
+            .get(&u)
+            .unwrap()
+            .iter()
             .find(|&&(node, _)| node == w)
-            .unwrap().1;
+            .unwrap()
+            .1;
 
         println!("{:?}", graph);
-        println!("{} {}", u ,w);
+        println!("{} {}", u, w);
         graph.get_mut(&u).unwrap().retain(|&(node, _)| node != w);
         graph.get_mut(&w).unwrap().retain(|&(node, _)| node != u);
 
@@ -92,9 +98,9 @@ fn additive_phylogeny(
 
 #[cfg(test)]
 mod tests {
+    use crate::graph::tree::phylogeny::additive_phylogeny;
     use std::collections::HashMap;
     use std::error::Error;
-    use crate::graph::tree::phylogeny::additive_phylogeny;
 
     #[test]
     fn test_additive_phylogeny1() -> Result<(), Box<dyn Error>> {
@@ -108,13 +114,14 @@ mod tests {
         for v in graph.values_mut() {
             v.sort();
         }
-        let mut ans = HashMap::from(
-            [(0, vec![(4, 11)]),
+        let mut ans = HashMap::from([
+            (0, vec![(4, 11)]),
             (1, vec![(4, 2)]),
             (2, vec![(5, 6)]),
             (3, vec![(5, 7)]),
-                (4, vec![(0, 11), (1,2), (5,4)]),
-                (5, vec![(4,4), (3, 7), (2, 6)])]);
+            (4, vec![(0, 11), (1, 2), (5, 4)]),
+            (5, vec![(4, 4), (3, 7), (2, 6)]),
+        ]);
         for v in ans.values_mut() {
             v.sort();
         }
