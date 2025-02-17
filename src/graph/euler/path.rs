@@ -2,10 +2,11 @@ use crate::graph::err::EmptyGraphError;
 use crate::utils::Graph;
 use std::collections::HashMap;
 use std::error::Error;
+use std::hash::Hash;
 
 pub fn eulerian_path<T>(graph: &Graph<T>) -> Result<Vec<T>, Box<dyn Error>>
 where
-    T: Clone + Eq + std::hash::Hash,
+    T: Clone + Eq + Hash,
 {
     if graph.is_empty() {
         return Err(Box::new(EmptyGraphError));
@@ -24,7 +25,7 @@ where
                 let next = neighbors.remove(0);
                 stack.push(next);
             } else if let Some(node) = stack.pop() {
-                    path.push(node);
+                path.push(node);
             }
         }
     }
