@@ -30,7 +30,7 @@ where
             }
         }
     }
-    panic!("Not a valid tree.")
+    panic!("Graph not connected.")
 }
 
 fn compute_distances(
@@ -52,7 +52,6 @@ fn compute_distances(
 
 pub fn calculate_limb_length(matrix: &[Vec<usize>], leaf: usize) -> Result<usize, Box<dyn Error>> {
     let mut min_length = usize::MAX;
-    println!("Matrix {:?}", matrix);
 
     // Iterate through all pairs of leaves i and k
     for (i, row) in matrix.iter().enumerate() {
@@ -65,7 +64,6 @@ pub fn calculate_limb_length(matrix: &[Vec<usize>], leaf: usize) -> Result<usize
             }
         }
     }
-    println!("Min length {}", min_length);
 
     Ok(min_length)
 }

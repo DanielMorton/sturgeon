@@ -7,97 +7,75 @@ use std::hash::Hash;
 pub(crate) fn find_path<T>(
     graph: &WeightedGraph<T, usize>,
     start: T,
-    end: T,
+    target: T,
 ) -> Result<Vec<T>, Box<dyn Error>>
 where
     T: Copy + Eq + Hash,
 {
-    let mut visited = std::collections::HashSet::new();
-    let mut path = Vec::new();
-    let _ = dfs_path(graph, start, end, &mut visited, &mut path);
-    Ok(path)
-}
+    let mut visited = HashSet::new();
+    let mut stack = vec![(start, Vec::new())];
 
-fn dfs_path<T>(
-    graph: &WeightedGraph<T, usize>,
-    current: T,
-    target: T,
-    visited: &mut HashSet<T>,
-    path: &mut Vec<T>,
-) -> Result<bool, Box<dyn Error>>
-where
-    T: Copy + Eq + Hash,
-{
-    visited.insert(current);
-    path.push(current);
+    while let Some((current, mut path)) = stack.pop() {
+        path.push(current);
 
-    if current == target {
-        return Ok(true);
-    }
+        if current == target {
+            return Ok(path);
+        }
 
-    if let Some(node) = graph.get(&current) {
-        for &(next, _) in node {
-            if !visited.contains(&next) {
-                if dfs_path(graph, next, target, visited, path)? {
-                    return Ok(true);
+        if visited.contains(&current) {
+            continue;
+        }
+
+        visited.insert(current);
+
+        if let Some(node) = graph.get(&current) {
+            for &(next, _) in node.iter().rev() {
+                // Reverse to maintain original DFS order
+                if !visited.contains(&next) {
+                    let next_path = path.clone();
+                    stack.push((next, next_path));
                 }
             }
         }
     }
 
-    path.pop();
-    Ok(false)
+    Ok(Vec::new())
 }
 
 pub(crate) fn find_node_at_distance<T>(
     graph: &WeightedGraph<T, usize>,
     start: T,
-    target: T,
-    distance: usize,
-) -> Option<T>
-where
-    T: Copy + Eq + Debug + Hash,
-{
-    let mut visited = HashSet::new();
-    println!("{:?}", graph);
-    println!("{:?} {:?} {}", start, target, distance);
-    dfs_find_node(graph, start, target, distance, 0, &mut visited)
-}
-
-fn dfs_find_node<T>(
-    graph: &WeightedGraph<T, usize>,
-    current: T,
-    target: T,
     target_distance: usize,
-    current_distance: usize,
-    visited: &mut HashSet<T>,
-) -> Option<T>
+) -> Result<Option<T>, Box<dyn Error>>
 where
     T: Copy + Eq + Hash,
 {
-    if current_distance == target_distance {
-        return Some(current);
-    }
+    let mut visited = HashSet::new();
+    let mut stack = vec![(start, 0)];
 
-    visited.insert(current);
+    while let Some((current, current_distance)) = stack.pop() {
+        if current_distance == target_distance {
+            return Ok(Some(current));
+        }
 
-    if let Some(node) = graph.get(&current) {
-        for &(next, weight) in node {
-            if !visited.contains(&next) {
+        if visited.contains(&current) {
+            continue;
+        }
+
+        visited.insert(current);
+
+        if let Some(node) = graph.get(&current) {
+            for &(next, weight) in node.iter().rev() {
+                // Reverse to maintain original DFS order
                 let new_distance = current_distance + weight;
-                if new_distance <= target_distance {
-                    if let Some(result) =
-                        dfs_find_node(graph, next, target, target_distance, new_distance, visited)
-                    {
-                        return Some(result);
-                    }
+                if !visited.contains(&next) && new_distance <= target_distance {
+                    stack.push((next, new_distance));
                 }
             }
         }
     }
 
-    visited.remove(&current);
-    None
+    Ok(None)
 }
 
 pub(crate) fn find_edge_to_split<T: Copy>(

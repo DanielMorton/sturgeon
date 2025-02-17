@@ -18,6 +18,39 @@ fn find_splitting_pair(d: &[Vec<usize>]) -> Result<(usize, usize, usize), Box<dy
     panic!("No splitting pair found");
 }
 
+fn add_node_at_distance(
+    graph: &mut WeightedGraph<usize, usize>,
+    inner_vertex: &mut usize,
+    start: usize,
+    end: usize,
+    target_distance: usize,
+) -> Result<usize, Box<dyn Error>> {
+    let v = *inner_vertex;
+    *inner_vertex += 1;
+
+    // Find the edge to split
+    let path = find_path(&graph, start, end)?;
+    let (u, w) = find_edge_to_split(&graph, &path, target_distance)?;
+
+    // Remove old edge
+    let edge_weight = graph
+        .get(&u)
+        .unwrap()
+        .iter()
+        .find(|&&(node, _)| node == w)
+        .unwrap()
+        .1;
+
+    graph.get_mut(&u).unwrap().retain(|&(node, _)| node != w);
+    graph.get_mut(&w).unwrap().retain(|&(node, _)| node != u);
+
+    // Add new node and edges
+    let dist_i_u = find_distance(graph, start, u)?;
+    let _ = add_weighted_edge_pair(graph, u, v, target_distance - dist_i_u);
+    let _ = add_weighted_edge_pair(graph, v, w, edge_weight - (target_distance - dist_i_u));
+    Ok(v)
+}
+
 fn additive_phylogeny(
     matrix: &[Vec<usize>],
     inner_vertex: &mut usize,
@@ -33,7 +66,6 @@ fn additive_phylogeny(
 
     // Calculate limb length for the last leaf
     let limb_length = calculate_limb_length(&matrix, matrix_len - 1)?;
-    println!("limb length {}", limb_length);
 
     // Create a copy of the distance matrix and adjust distances
     let mut matrix_prime = matrix.to_vec();
@@ -45,10 +77,8 @@ fn additive_phylogeny(
         matrix_prime[matrix_len - 1][j] = matrix_prime[j][matrix_len - 1];
     }
 
-    println!("{:?}", matrix_prime);
     // Find i,k such that Di,k = Di,n + Dn,k
-    let (i, k, x) = find_splitting_pair(&matrix_prime)?;
-    println!("i {} k {} x {}", i, k, x);
+    let (start, end, distance) = find_splitting_pair(&matrix_prime)?;
 
     // Remove last row and column to create smaller matrix
     matrix_prime = matrix_prime
@@ -60,35 +90,10 @@ fn additive_phylogeny(
     // Recursive call
     let mut graph = additive_phylogeny(&matrix_prime, inner_vertex)?;
 
-    // Find the attachment point
-    let v = find_node_at_distance(&graph, i, k, x).unwrap_or_else(|| {
-        let v = *inner_vertex;
-        *inner_vertex += 1;
-
-        // Find the edge to split
-        let path = find_path(&graph, i, k).unwrap();
-        let (u, w) = find_edge_to_split(&graph, &path, x).unwrap();
-
-        // Remove old edge
-        let edge_weight = graph
-            .get(&u)
-            .unwrap()
-            .iter()
-            .find(|&&(node, _)| node == w)
-            .unwrap()
-            .1;
-
-        println!("{:?}", graph);
-        println!("{} {}", u, w);
-        graph.get_mut(&u).unwrap().retain(|&(node, _)| node != w);
-        graph.get_mut(&w).unwrap().retain(|&(node, _)| node != u);
-
-        // Add new node and edges
-        let dist_i_u = find_distance(&mut graph, i, u).unwrap();
-        let _ = add_weighted_edge_pair(&mut graph, u, v, x - dist_i_u);
-        let _ = add_weighted_edge_pair(&mut graph, v, w, edge_weight - (x - dist_i_u));
-        v
-    });
+    let v = match find_node_at_distance(&graph, start, distance)? {
+        Some(v) => v,
+        None => add_node_at_distance(&mut graph, inner_vertex, start, end, distance)?,
+    };
 
     // Add the new leaf
     let _ = add_weighted_edge_pair(&mut graph, v, matrix_len - 1, limb_length);
