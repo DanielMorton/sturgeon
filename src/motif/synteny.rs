@@ -23,7 +23,7 @@ pub fn shared_kmers(k: usize, s: &str, t: &str) -> Result<Vec<(usize, usize)>, B
                 kmer_locs.push((i, j));
             }
         }
-        let complement = dna_complement(&kmer)?;
+        let complement = dna_complement(kmer)?;
         if let Some(positions) = kmer_positions.get(&complement) {
             for &i in positions {
                 kmer_locs.push((i, j));

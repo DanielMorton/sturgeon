@@ -32,7 +32,7 @@ pub fn run_synteny(args: SyntenyArgs) -> Result<(), Box<dyn Error>> {
         synteny_to_chromosome(&syn_matches, args.kmer_length, &dna1, &dna2.text)?;
     println!(
         "Distance {}",
-        two_break_distance(&vec![chromosome1.clone()], &vec![chromosome2.clone()])?
+        two_break_distance(&[chromosome1.clone()], &[chromosome2.clone()])?
     );
     Ok(())
 }

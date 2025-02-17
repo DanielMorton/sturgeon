@@ -29,8 +29,8 @@ fn add_node_at_distance(
     *inner_vertex += 1;
 
     // Find the edge to split
-    let path = find_path(&graph, start, end)?;
-    let (u, w) = find_edge_to_split(&graph, &path, target_distance)?;
+    let path = find_path(graph, start, end)?;
+    let (u, w) = find_edge_to_split(graph, &path, target_distance)?;
 
     // Remove old edge
     let edge_weight = graph
@@ -65,7 +65,7 @@ fn additive_phylogeny(
     let matrix_len = matrix.len();
 
     // Calculate limb length for the last leaf
-    let limb_length = calculate_limb_length(&matrix, matrix_len - 1)?;
+    let limb_length = calculate_limb_length(matrix, matrix_len - 1)?;
 
     // Create a copy of the distance matrix and adjust distances
     let mut matrix_prime = matrix.to_vec();

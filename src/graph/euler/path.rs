@@ -23,10 +23,8 @@ where
             if !neighbors.is_empty() {
                 let next = neighbors.remove(0);
                 stack.push(next);
-            } else {
-                if let Some(node) = stack.pop() {
+            } else if let Some(node) = stack.pop() {
                     path.push(node);
-                }
             }
         }
     }

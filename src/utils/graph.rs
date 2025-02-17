@@ -15,7 +15,7 @@ where
     T: Hash + Eq,
 {
     // Add edge in both directions since it's an undirected tree
-    graph.entry(u).or_insert(Vec::new()).push((v, weight));
+    graph.entry(u).or_default().push((v, weight));
     Ok(())
 }
 

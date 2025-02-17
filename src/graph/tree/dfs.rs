@@ -78,7 +78,7 @@ where
     Ok(None)
 }
 
-pub(crate) fn find_edge_to_split<T: Copy>(
+pub(crate) fn find_edge_to_split<T>(
     graph: &WeightedGraph<T, usize>,
     path: &[T],
     target_distance: usize,
