@@ -1,8 +1,13 @@
-use std::error::Error;
 use crate::utils::{add_weighted_edge_pair, WeightedGraph};
-fn add_node(graph: &mut WeightedGraph<usize, f64>, ages: &[f64], new_node: usize, first: usize, second: usize) -> Result<(),Box<dyn Error> > {
-
-    println!("id = {} first = {} second = {}", new_node ,first, second);
+use std::error::Error;
+fn add_node(
+    graph: &mut WeightedGraph<usize, f64>,
+    ages: &[f64],
+    new_node: usize,
+    first: usize,
+    second: usize,
+) -> Result<(), Box<dyn Error>> {
+    println!("id = {} first = {} second = {}", new_node, first, second);
     let _ = add_weighted_edge_pair(graph, new_node, first, ages[new_node] - ages[first]);
     let _ = add_weighted_edge_pair(graph, new_node, second, ages[new_node] - ages[second]);
     Ok(())
@@ -14,7 +19,7 @@ fn find_closest_clusters(d: &[Vec<f64>]) -> Result<(usize, usize, f64), Box<dyn 
     let mut min_dist = d[min_i][min_j];
 
     for i in 0..d.len() {
-        for j in (i+1)..d.len() {
+        for j in (i + 1)..d.len() {
             if d[i][j] < min_dist {
                 min_i = i;
                 min_j = j;
@@ -31,7 +36,7 @@ fn update_distance_matrix(
     clusters: &mut Vec<usize>,
     i: usize,
     j: usize,
-    cluster_sizes: &[usize]
+    cluster_sizes: &[usize],
 ) -> Result<(), Box<dyn Error>> {
     // Calculate new distances
     let new_row = calculate_new_distances(d, clusters, i, j, cluster_sizes)?;
@@ -57,7 +62,7 @@ fn update_distance_matrix(
 }
 
 // UPGMA algorithm implementation
-pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize,f64>, Box<dyn Error>> {
+pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>, Box<dyn Error>> {
     // Initialize the graph with n isolated nodes
     let mut graph = WeightedGraph::new();
     let mut matrix_prime = matrix.to_vec();
@@ -78,7 +83,7 @@ pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize,f64>, Box<dyn Er
         let ci = clusters[i];
         let cj = clusters[j];
 
-        ages.push(min_dist/2.0);
+        ages.push(min_dist / 2.0);
         // Create a new node in the graph
         let _ = add_node(&mut graph, &ages, cluster_sizes.len(), ci, cj);
 
@@ -100,7 +105,7 @@ fn calculate_new_distances(
     clusters: &[usize],
     i: usize,
     j: usize,
-    cluster_sizes: &[usize]
+    cluster_sizes: &[usize],
 ) -> Result<Vec<f64>, Box<dyn Error>> {
     let mut new_distances = Vec::new();
     let ci = clusters[i];
@@ -112,9 +117,8 @@ fn calculate_new_distances(
             let size_j = cluster_sizes[cj];
 
             // UPGMA formula for new distance
-            let new_dist = (size_i as f64 * d[i][k] +
-                size_j as f64 * d[j][k]) /
-                ((size_i + size_j) as f64);
+            let new_dist =
+                (size_i as f64 * d[i][k] + size_j as f64 * d[j][k]) / ((size_i + size_j) as f64);
 
             new_distances.push(new_dist);
         }
@@ -128,28 +132,28 @@ fn calculate_new_distances(
 
 #[cfg(test)]
 mod tests {
+    use crate::graph::tree::upgma::upgma;
+    use approx::abs_diff_eq;
     use std::collections::HashMap;
     use std::error::Error;
-    use approx::abs_diff_eq;
-    use crate::graph::tree::upgma::upgma;
 
     #[test]
     fn test_upgma1() -> Result<(), Box<dyn Error>> {
         let matrix = vec![
-            vec![ 0.0, 20.0, 17.0, 11.0],
-            vec![20.0,  0.0, 20.0, 13.0],
-            vec![17.0, 20.0,  0.0, 10.0],
-            vec![11.0, 13.0, 10.0,  0.0],
+            vec![0.0, 20.0, 17.0, 11.0],
+            vec![20.0, 0.0, 20.0, 13.0],
+            vec![17.0, 20.0, 0.0, 10.0],
+            vec![11.0, 13.0, 10.0, 0.0],
         ];
         let graph = upgma(&matrix)?;
         let mut ans = HashMap::from([
             (0, vec![(5, 7.0)]),
-            (1, vec![(6, 53.0/6.0)]),
+            (1, vec![(6, 53.0 / 6.0)]),
             (2, vec![(4, 5.0)]),
             (3, vec![(4, 5.0)]),
             (4, vec![(2, 5.0), (3, 5.0), (5, 2.0)]),
-            (5, vec![(0, 7.0), (4, 2.0), (6, 11.0/6.0)]),
-            (6, vec![(1, 53.0/6.0), (5, 11.0/6.0)])
+            (5, vec![(0, 7.0), (4, 2.0), (6, 11.0 / 6.0)]),
+            (6, vec![(1, 53.0 / 6.0), (5, 11.0 / 6.0)]),
         ]);
         for key in graph.keys() {
             let g_vec = graph.get(key).unwrap();

@@ -1,7 +1,7 @@
+use crate::graph::additive_phylogeny;
+use clap::Parser;
 use std::error::Error;
 use std::fs;
-use clap::Parser;
-use crate::graph::additive_phylogeny;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

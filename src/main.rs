@@ -3,11 +3,11 @@
 use crate::cyclo::{run_convo_cyclo, run_cyclo, run_leader_cyclo, CycloArgs};
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
+use crate::pylogeny::{run_phylogeny, PhylogenyArgs};
 use crate::synteny::{run_synteny, SyntenyArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
-use crate::pylogeny::{PhylogenyArgs, run_phylogeny};
 
 mod cyclo;
 mod dosr;
@@ -17,11 +17,11 @@ mod manhattan;
 mod motif;
 mod ori;
 mod peptide;
+mod pylogeny;
 mod synteny;
 mod translate;
 mod translation;
 mod utils;
-mod pylogeny;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
