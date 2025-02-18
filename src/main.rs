@@ -8,6 +8,7 @@ use crate::synteny::{run_synteny, SyntenyArgs};
 use crate::translate::{run_translation, TranslateArgs};
 use clap::{Parser, Subcommand};
 use std::error::Error;
+use crate::upgma::run_upgma;
 
 mod cyclo;
 mod dosr;
@@ -21,6 +22,7 @@ mod pylogeny;
 mod synteny;
 mod translate;
 mod translation;
+mod upgma;
 mod utils;
 
 #[derive(Parser)]
@@ -50,6 +52,8 @@ enum Commands {
     Synteny(SyntenyArgs),
     #[command(name = "translate")]
     Translate(TranslateArgs),
+    #[command(name = "upgma")]
+    UPGMA(PhylogenyArgs),
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -64,5 +68,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Phylogeny(args) => run_phylogeny(args),
         Commands::Synteny(args) => run_synteny(args),
         Commands::Translate(args) => run_translation(args),
+        Commands::UPGMA(args) => run_upgma(args)
     }
 }

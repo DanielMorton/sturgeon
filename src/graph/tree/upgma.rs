@@ -1,5 +1,8 @@
+use crate::graph::tree::matrix::update_distance_matrix;
+use crate::graph::tree::merge::find_closest_clusters;
 use crate::utils::{add_weighted_edge_pair, WeightedGraph};
 use std::error::Error;
+
 fn add_node(
     graph: &mut WeightedGraph<usize, f64>,
     ages: &[f64],
@@ -7,57 +10,8 @@ fn add_node(
     first: usize,
     second: usize,
 ) -> Result<(), Box<dyn Error>> {
-    println!("id = {} first = {} second = {}", new_node, first, second);
     let _ = add_weighted_edge_pair(graph, new_node, first, ages[new_node] - ages[first]);
     let _ = add_weighted_edge_pair(graph, new_node, second, ages[new_node] - ages[second]);
-    Ok(())
-}
-
-fn find_closest_clusters(d: &[Vec<f64>]) -> Result<(usize, usize, f64), Box<dyn Error>> {
-    let mut min_i = 0;
-    let mut min_j = 1;
-    let mut min_dist = d[min_i][min_j];
-
-    for i in 0..d.len() {
-        for j in (i + 1)..d.len() {
-            if d[i][j] < min_dist {
-                min_i = i;
-                min_j = j;
-                min_dist = d[i][j];
-            }
-        }
-    }
-
-    Ok((min_i, min_j, min_dist))
-}
-
-fn update_distance_matrix(
-    d: &mut Vec<Vec<f64>>,
-    clusters: &mut Vec<usize>,
-    i: usize,
-    j: usize,
-    cluster_sizes: &[usize],
-) -> Result<(), Box<dyn Error>> {
-    // Calculate new distances
-    let new_row = calculate_new_distances(d, clusters, i, j, cluster_sizes)?;
-
-    // Remove from larger index first to avoid shifting problems
-    for row in d.iter_mut() {
-        row.remove(j);
-        row.remove(i);
-    }
-    d.remove(j);
-    d.remove(i);
-
-    // Add new row and column
-    d.push(new_row.clone());
-    let d_len = d.len();
-    for (i, row) in d.iter_mut().enumerate().take(d_len - 1) {
-        row.push(new_row[i]);
-    }
-    clusters.remove(j);
-    clusters.remove(i);
-    clusters.push(cluster_sizes.len() - 1);
     Ok(())
 }
 
@@ -79,7 +33,6 @@ pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>, Box<dyn E
     while clusters.len() > 1 {
         // Find the two closest clusters
         let (i, j, min_dist) = find_closest_clusters(&matrix_prime)?;
-        println!("Clusters {:?}", clusters);
         let ci = clusters[i];
         let cj = clusters[j];
 
@@ -87,7 +40,6 @@ pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>, Box<dyn E
         // Create a new node in the graph
         let _ = add_node(&mut graph, &ages, cluster_sizes.len(), ci, cj);
 
-        println!("{} {} {:?}", ci, cj, cluster_sizes);
         let new_size = cluster_sizes[ci] + cluster_sizes[cj];
         // Update the cluster sizes
         cluster_sizes.push(new_size);
@@ -97,37 +49,6 @@ pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>, Box<dyn E
     }
 
     Ok(graph)
-}
-
-// Helper function to calculate new distances after merging clusters
-fn calculate_new_distances(
-    d: &[Vec<f64>],
-    clusters: &[usize],
-    i: usize,
-    j: usize,
-    cluster_sizes: &[usize],
-) -> Result<Vec<f64>, Box<dyn Error>> {
-    let mut new_distances = Vec::new();
-    let ci = clusters[i];
-    let cj = clusters[j];
-
-    for k in 0..clusters.len() {
-        if k != i && k != j {
-            let size_i = cluster_sizes[ci];
-            let size_j = cluster_sizes[cj];
-
-            // UPGMA formula for new distance
-            let new_dist =
-                (size_i as f64 * d[i][k] + size_j as f64 * d[j][k]) / ((size_i + size_j) as f64);
-
-            new_distances.push(new_dist);
-        }
-    }
-
-    // Add a placeholder for the distance to itself (which is 0)
-    new_distances.push(0.0);
-    println!("New Distances {:?}", new_distances);
-    Ok(new_distances)
 }
 
 #[cfg(test)]

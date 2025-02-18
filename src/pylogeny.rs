@@ -7,7 +7,7 @@ use std::fs;
 #[command(author, version, about, long_about = None)]
 pub struct PhylogenyArgs {
     #[arg(long, required = true, value_name = "file1")]
-    input: String,
+    pub input: String,
 }
 
 pub fn run_phylogeny(args: PhylogenyArgs) -> Result<(), Box<dyn Error>> {

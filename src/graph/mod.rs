@@ -7,4 +7,5 @@ mod overlap;
 mod reconstruction;
 mod tree;
 
-pub use tree::additive_phylogeny;
+use approx::ulps_eq;
+pub use tree::{additive_phylogeny, upgma};
