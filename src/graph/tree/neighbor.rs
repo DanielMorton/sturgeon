@@ -55,7 +55,12 @@ pub fn neighbor_joining(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>
         clusters.push(next_index);
         next_index += 1;
     }
-    let _ = add_weighted_edge_pair(&mut graph, next_index - 1, next_index - 2, matrix_prime[0][1])?;
+    let _ = add_weighted_edge_pair(
+        &mut graph,
+        next_index - 1,
+        next_index - 2,
+        matrix_prime[0][1],
+    )?;
 
     Ok(graph)
 }
