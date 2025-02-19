@@ -1,6 +1,34 @@
 use std::error::Error;
 
-pub fn calculate_new_distances(
+pub(crate) fn find_minimal_coordinates(
+    matrix: &[Vec<f64>],
+) -> Result<(usize, usize), Box<dyn Error>> {
+    if matrix.is_empty() {
+        return Err("Empty matrix".into());
+    }
+
+    let matrix_size = matrix.len();
+    let (mut min_i, mut min_j) = (0, 1);
+    let mut min_value = f64::MAX;
+
+    // Find minimum value, excluding diagonal elements
+    for i in 0..matrix_size {
+        for j in (i + 1)..matrix_size {
+            if i != j {
+                let value = matrix[i][j];
+                if value < min_value {
+                    min_i = i;
+                    min_j = j;
+                    min_value = value;
+                }
+            }
+        }
+    }
+
+    Ok((min_i, min_j))
+}
+
+pub(crate) fn calculate_new_distances(
     d: &[Vec<f64>],
     clusters: &[usize],
     i: usize,
@@ -31,13 +59,11 @@ pub fn calculate_new_distances(
 
 pub(crate) fn update_distance_matrix(
     d: &mut Vec<Vec<f64>>,
-    clusters: &mut Vec<usize>,
     i: usize,
     j: usize,
-    cluster_sizes: &[usize],
+    new_row: &[f64],
 ) -> Result<(), Box<dyn Error>> {
     // Calculate new distances
-    let new_row = calculate_new_distances(d, clusters, i, j, cluster_sizes)?;
 
     // Remove from larger index first to avoid shifting problems
     for row in d.iter_mut() {
@@ -48,13 +74,10 @@ pub(crate) fn update_distance_matrix(
     d.remove(i);
 
     // Add new row and column
-    d.push(new_row.clone());
+    d.push(new_row.to_vec());
     let d_len = d.len();
     for (i, row) in d.iter_mut().enumerate().take(d_len - 1) {
         row.push(new_row[i]);
     }
-    clusters.remove(j);
-    clusters.remove(i);
-    clusters.push(cluster_sizes.len() - 1);
     Ok(())
 }

@@ -1,7 +1,7 @@
-use std::error::Error;
-use std::fs;
 use crate::graph::upgma;
 use crate::pylogeny::PhylogenyArgs;
+use std::error::Error;
+use std::fs;
 
 pub fn run_upgma(args: PhylogenyArgs) -> Result<(), Box<dyn Error>> {
     // Read file contents

@@ -6,9 +6,9 @@ use crate::ori::{run_ori, OriArgs};
 use crate::pylogeny::{run_phylogeny, PhylogenyArgs};
 use crate::synteny::{run_synteny, SyntenyArgs};
 use crate::translate::{run_translation, TranslateArgs};
+use crate::upgma::run_upgma;
 use clap::{Parser, Subcommand};
 use std::error::Error;
-use crate::upgma::run_upgma;
 
 mod cyclo;
 mod dosr;
@@ -68,6 +68,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::Phylogeny(args) => run_phylogeny(args),
         Commands::Synteny(args) => run_synteny(args),
         Commands::Translate(args) => run_translation(args),
-        Commands::UPGMA(args) => run_upgma(args)
+        Commands::UPGMA(args) => run_upgma(args),
     }
 }
