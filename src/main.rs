@@ -6,7 +6,7 @@ use crate::ori::{run_ori, OriArgs};
 use crate::pylogeny::{run_phylogeny, PhylogenyArgs};
 use crate::synteny::{run_synteny, SyntenyArgs};
 use crate::translate::{run_translation, TranslateArgs};
-use crate::upgma::run_upgma;
+use crate::upgma::{run_neighbor_join, run_upgma};
 use clap::{Parser, Subcommand};
 use std::error::Error;
 
@@ -44,6 +44,8 @@ enum Commands {
     DosRRandom(DosRArgs),
     #[command(name = "leaderboard")]
     LeaderBoardCyclopeptideSequencing(CycloArgs),
+    #[command(name = "neighbor-join")]
+    NeighborJoin(PhylogenyArgs),
     #[command(name = "ori")]
     Ori(OriArgs),
     #[command(name = "phylogeny")]
@@ -64,6 +66,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         Commands::DosRMedian(args) => run_median(args),
         Commands::DosRRandom(args) => run_random(args),
         Commands::LeaderBoardCyclopeptideSequencing(args) => run_leader_cyclo(args),
+        Commands::NeighborJoin(args) => run_neighbor_join(args),
         Commands::Ori(args) => run_ori(args),
         Commands::Phylogeny(args) => run_phylogeny(args),
         Commands::Synteny(args) => run_synteny(args),

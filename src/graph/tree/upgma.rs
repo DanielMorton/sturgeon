@@ -1,4 +1,4 @@
-use crate::graph::tree::matrix::{calculate_new_distances, update_distance_matrix};
+use crate::graph::tree::matrix::{new_upgma_row, update_distance_matrix};
 use crate::graph::tree::merge::find_closest_clusters;
 use crate::utils::{add_weighted_edge_pair, WeightedGraph};
 use std::error::Error;
@@ -44,7 +44,7 @@ pub fn upgma(matrix: &[Vec<f64>]) -> Result<WeightedGraph<usize, f64>, Box<dyn E
         // Update the cluster sizes
         cluster_sizes.push(new_size);
 
-        let new_row = calculate_new_distances(&matrix_prime, &clusters, i, j, &cluster_sizes)?;
+        let new_row = new_upgma_row(&matrix_prime, &clusters, i, j, &cluster_sizes)?;
         // Update the distance matrix
         let _ = update_distance_matrix(&mut matrix_prime, i, j, &new_row);
         clusters.remove(j);

@@ -1,4 +1,16 @@
 use std::error::Error;
+use std::iter::Sum;
+use std::ops::Add;
+
+pub(crate) fn row_sum<T>(matrix: &[Vec<T>]) -> Result<Vec<T>, Box<dyn Error>>
+where
+    T: Add<Output = T> + Sum + Copy,
+{
+    Ok(matrix
+        .iter()
+        .map(|row| row.iter().copied().sum::<T>())
+        .collect::<Vec<_>>())
+}
 
 pub(crate) fn find_minimal_coordinates(
     matrix: &[Vec<f64>],
@@ -28,33 +40,46 @@ pub(crate) fn find_minimal_coordinates(
     Ok((min_i, min_j))
 }
 
-pub(crate) fn calculate_new_distances(
+pub(crate) fn new_upgma_row(
     d: &[Vec<f64>],
     clusters: &[usize],
     i: usize,
     j: usize,
     cluster_sizes: &[usize],
 ) -> Result<Vec<f64>, Box<dyn Error>> {
-    let mut new_distances = Vec::new();
     let ci = clusters[i];
     let cj = clusters[j];
+    let size_i = cluster_sizes[ci] as f64;
+    let size_j = cluster_sizes[cj] as f64;
 
-    for k in 0..clusters.len() {
+    Ok(d.into_iter()
+        .enumerate()
+        .filter(|(k, _)| k != &i && k != &j)
+        .map(|(_, row)| (size_i * row[i] + size_j * row[j]) / (size_i + size_j))
+        .chain([0.0])
+        .collect::<Vec<_>>())
+}
+
+pub(crate) fn new_neigbhor_join_row(
+    d: &[Vec<f64>],
+    i: usize,
+    j: usize,
+) -> Result<Vec<f64>, Box<dyn Error>> {
+    let mut new_row = Vec::new();
+
+    for k in 0..d.len() {
         if k != i && k != j {
-            let size_i = cluster_sizes[ci];
-            let size_j = cluster_sizes[cj];
-
-            // UPGMA formula for new distance
-            let new_dist =
-                (size_i as f64 * d[i][k] + size_j as f64 * d[j][k]) / ((size_i + size_j) as f64);
-
-            new_distances.push(new_dist);
+            let new_dist = (d[i][k] + d[j][k] - d[i][j]) / 2.0;
+            new_row.push(new_dist);
         }
     }
 
-    // Add a placeholder for the distance to itself (which is 0)
-    new_distances.push(0.0);
-    Ok(new_distances)
+    Ok(d.into_iter()
+        .enumerate()
+        .filter(|(k, _)| k != &i && k != &j)
+        .map(|(_, row)| (row[i] + row[j] - d[i][j]) / 2.0)
+        .chain([0.0])
+        .collect::<Vec<_>>())
 }
 
 pub(crate) fn update_distance_matrix(
