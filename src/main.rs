@@ -10,6 +10,7 @@ use crate::upgma::{run_neighbor_join, run_upgma};
 use clap::{Parser, Subcommand};
 use std::error::Error;
 
+mod bwt;
 mod cyclo;
 mod dosr;
 mod genome;
