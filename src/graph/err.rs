@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter, Result};
 
 #[derive(Debug)]
 pub(crate) struct EmptyGraphError;
@@ -7,7 +7,7 @@ pub(crate) struct EmptyGraphError;
 impl Error for EmptyGraphError {}
 
 impl Display for EmptyGraphError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "Empty Graph.")
     }
 }
@@ -18,7 +18,7 @@ pub(crate) struct EmptyPathError;
 impl Error for EmptyPathError {}
 
 impl Display for EmptyPathError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(f, "Empty Path List.")
     }
 }
@@ -44,7 +44,7 @@ impl InvalidPathError {
 }
 
 impl Display for InvalidPathError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> Result {
         write!(
             f,
             "Invalid Path at position {}: prefix of '{}' does not match suffix of '{}'.",

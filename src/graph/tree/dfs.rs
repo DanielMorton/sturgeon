@@ -1,7 +1,6 @@
 use crate::utils::WeightedGraph;
 use std::collections::HashSet;
 use std::error::Error;
-use std::fmt::Debug;
 use std::hash::Hash;
 
 pub(crate) fn find_path<T>(

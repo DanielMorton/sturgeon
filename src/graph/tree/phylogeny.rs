@@ -3,7 +3,6 @@ use crate::graph::tree::distance::{calculate_limb_length, find_distance};
 use crate::utils::{add_weighted_edge_pair, WeightedGraph};
 use std::collections::HashMap;
 use std::error::Error;
-use std::hash::Hash;
 
 fn find_splitting_pair(d: &[Vec<usize>]) -> Result<(usize, usize, usize), Box<dyn Error>> {
     let d_tail = d.last().unwrap();

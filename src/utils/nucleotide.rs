@@ -1,5 +1,5 @@
 use std::error::Error;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 
 #[derive(Debug, PartialEq)]
 pub struct InvalidNucleotideError {
@@ -14,8 +14,8 @@ impl InvalidNucleotideError {
     }
 }
 
-impl std::fmt::Display for InvalidNucleotideError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+impl Display for InvalidNucleotideError {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(f, "Invalid nucleotide '{}'", self.character)
     }
 }
@@ -38,7 +38,7 @@ impl InvalidNucleotidePositionError {
 }
 
 impl Display for InvalidNucleotidePositionError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
         write!(
             f,
             "Invalid nucleotide '{}' at position {}",

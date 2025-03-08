@@ -1,13 +1,16 @@
 use std::error::Error;
 
-// More efficient implementation using suffix ranks and doubling algorithm
 pub fn suffix_array(text: &str) -> Result<Vec<usize>, Box<dyn Error>> {
-    let binding = text.to_owned() + "$";
-    let text = binding.as_bytes();
-    let n = binding.len();
+    let text_bytes = text.as_bytes();
+    suffix_array_bytes(text_bytes)
+}
+
+// More efficient implementation using suffix ranks and doubling algorithm
+pub(crate) fn suffix_array_bytes(text_bytes: &[u8]) -> Result<Vec<usize>, Box<dyn Error>> {
+    let n = text_bytes.len();
 
     let mut suffix = (0..n).collect::<Vec<usize>>();
-    let mut rank = text.iter().map(|&t| t as i32).collect::<Vec<_>>();
+    let mut rank = text_bytes.iter().map(|&t| t as i32).collect::<Vec<_>>();
     let mut tmp = vec![0; n];
 
     // Sort suffixes by initial character
@@ -69,7 +72,7 @@ mod tests {
     #[test]
     fn test_suffix_array1() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            suffix_array("AACGATAGCGGTAGA")?,
+            suffix_array("AACGATAGCGGTAGA$")?,
             vec![15, 14, 0, 1, 12, 6, 4, 2, 8, 13, 3, 7, 9, 10, 11, 5]
         );
         Ok(())
@@ -77,37 +80,25 @@ mod tests {
 
     #[test]
     fn test_suffix_array2() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            suffix_array("AATCAATC")?,
-            vec![8, 4, 0, 5, 1, 7, 3, 6, 2]
-        );
+        assert_eq!(suffix_array("AATCAATC$")?, vec![8, 4, 0, 5, 1, 7, 3, 6, 2]);
         Ok(())
     }
 
     #[test]
     fn test_suffix_array3() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            suffix_array("ATCG")?,
-            vec![4, 0, 2, 3, 1]
-        );
+        assert_eq!(suffix_array("ATCG$")?, vec![4, 0, 2, 3, 1]);
         Ok(())
     }
 
     #[test]
     fn test_suffix_array4() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            suffix_array("AAACA")?,
-            vec![5, 4, 0, 1, 2, 3]
-        );
+        assert_eq!(suffix_array("AAACA$")?, vec![5, 4, 0, 1, 2, 3]);
         Ok(())
     }
 
     #[test]
     fn test_suffix_array5() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            suffix_array("ABCFED")?,
-            vec![6, 0, 1, 2, 5, 4, 3]
-        );
+        assert_eq!(suffix_array("ABCFED$")?, vec![6, 0, 1, 2, 5, 4, 3]);
         Ok(())
     }
 }

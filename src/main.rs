@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use crate::burrows_wheeler::{run_bwt, BWTArgs};
 use crate::cyclo::{run_convo_cyclo, run_cyclo, run_leader_cyclo, CycloArgs};
 use crate::dosr::{run_median, run_random, DosRArgs};
 use crate::ori::{run_ori, OriArgs};
@@ -10,6 +11,7 @@ use crate::upgma::{run_neighbor_join, run_upgma};
 use clap::{Parser, Subcommand};
 use std::error::Error;
 
+mod burrows_wheeler;
 mod bwt;
 mod cyclo;
 mod dosr;
@@ -35,6 +37,8 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    #[command(name = "bwt")]
+    BWT(BWTArgs),
     #[command(name = "convolution")]
     ConvolutionCyclopeptideSequencing(CycloArgs),
     #[command(name = "cyclo-sequence")]
@@ -62,6 +66,7 @@ enum Commands {
 fn main() -> Result<(), Box<dyn Error>> {
     let cli = Cli::parse();
     match cli.command {
+        Commands::BWT(args) => run_bwt(args),
         Commands::ConvolutionCyclopeptideSequencing(args) => run_convo_cyclo(args),
         Commands::CyclopeptideSequencing(args) => run_cyclo(args),
         Commands::DosRMedian(args) => run_median(args),

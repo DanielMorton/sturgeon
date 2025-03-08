@@ -34,8 +34,7 @@ pub struct OriArgs {
 
 impl OriArgs {
     pub fn get_input(&self) -> Result<String, OriParseError> {
-        let result = self.input.clone();
-        Ok(result)
+        Ok(self.input.to_owned())
     }
 
     pub fn get_kmer_length(&self) -> Result<usize, OriParseError> {

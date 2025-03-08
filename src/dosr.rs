@@ -31,9 +31,8 @@ pub struct DosRArgs {
 }
 
 impl DosRArgs {
-    fn get_input(&self) -> Result<String, DosRParseError> {
-        let result = self.input.clone();
-        Ok(result)
+    pub fn get_input(&self) -> Result<String, Box<dyn Error>> {
+        Ok(self.input.to_owned())
     }
     fn get_num_iters(&self) -> Result<usize, DosRParseError> {
         Ok(self.num_iters)
