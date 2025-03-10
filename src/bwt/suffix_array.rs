@@ -125,7 +125,8 @@ pub(crate) fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + O
         &type_map,
     )?;
 
-    Ok(suffix_array.into_iter()
+    Ok(suffix_array
+        .into_iter()
         .map(|s| s as usize)
         .collect::<Vec<_>>())
 }
@@ -167,12 +168,14 @@ pub(crate) fn make_summary_suffix_array(
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-    use crate::bwt::suffix_array::{make_summary_suffix_array, suffix_array, suffix_array_induced_sorting};
-    use std::error::Error;
     use crate::bwt::bucket::char_buckets;
     use crate::bwt::lms::{build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s};
+    use crate::bwt::suffix_array::{
+        make_summary_suffix_array, suffix_array, suffix_array_induced_sorting,
+    };
     use crate::bwt::summary::summarize_suffix_array;
+    use std::collections::HashMap;
+    use std::error::Error;
 
     #[test]
     fn test_suffix_array1() -> Result<(), Box<dyn Error>> {
@@ -237,7 +240,8 @@ mod tests {
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
-        let cabbage_summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+        let cabbage_summary_suffix_array =
+            make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
         assert_eq!(cabbage_summary_suffix_array, vec![3, 2, 0, 1]);
         Ok(())
     }
@@ -248,7 +252,10 @@ mod tests {
         let char_map = (0..7)
             .map(|n| (b'a' + n, n as usize))
             .collect::<HashMap<_, _>>();
-        assert_eq!(suffix_array_induced_sorting(text.as_bytes(), &char_map)?, vec![7, 1, 4, 3, 2, 0, 6, 5]);
+        assert_eq!(
+            suffix_array_induced_sorting(text.as_bytes(), &char_map)?,
+            vec![7, 1, 4, 3, 2, 0, 6, 5]
+        );
         Ok(())
     }
 
@@ -258,8 +265,10 @@ mod tests {
         let char_map = (0..3)
             .map(|n| (b'a' + n, n as usize))
             .collect::<HashMap<_, _>>();
-        assert_eq!(suffix_array_induced_sorting(text.as_bytes(), &char_map)?, vec![9, 1, 4, 2, 5, 7, 0, 3, 6, 8]);
+        assert_eq!(
+            suffix_array_induced_sorting(text.as_bytes(), &char_map)?,
+            vec![9, 1, 4, 2, 5, 7, 0, 3, 6, 8]
+        );
         Ok(())
     }
-
 }

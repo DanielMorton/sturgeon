@@ -184,11 +184,13 @@ pub(crate) fn accurate_lms_sort<T: Copy + Eq + Hash>(
 #[cfg(test)]
 mod tests {
     use crate::bwt::bucket::char_buckets;
-    use crate::bwt::lms::{accurate_lms_sort, build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s, L, S};
-    use std::collections::HashMap;
-    use std::error::Error;
+    use crate::bwt::lms::{
+        accurate_lms_sort, build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s, L, S,
+    };
     use crate::bwt::suffix_array::make_summary_suffix_array;
     use crate::bwt::summary::summarize_suffix_array;
+    use std::collections::HashMap;
+    use std::error::Error;
 
     #[test]
     fn test_build_type_map1() -> Result<(), Box<dyn Error>> {
@@ -342,9 +344,15 @@ mod tests {
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
-        let cabbage_summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
-        let mut suffix_array =
-            accurate_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_summary_suffix_array, &summary_suffix_offsets)?;
+        let cabbage_summary_suffix_array =
+            make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+        let mut suffix_array = accurate_lms_sort(
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_summary_suffix_array,
+            &summary_suffix_offsets,
+        )?;
         assert_eq!(suffix_array, vec![7, 1, 4, -1, -1, -1, -1, -1]);
         Ok(())
     }
