@@ -5,6 +5,7 @@ use crate::bwt::lms::{
 use crate::bwt::summary::summarize_suffix_array;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
+use std::fmt::Display;
 use std::hash::Hash;
 
 pub fn suffix_array(text: &str) -> Result<Vec<usize>, Box<dyn Error>> {
@@ -71,7 +72,7 @@ pub(crate) fn suffix_array_bytes(text_bytes: &[u8]) -> Result<Vec<usize>, Box<dy
     Ok(suffix)
 }
 
-pub fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
+pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> + Ord>(
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
 ) -> Result<Vec<usize>, Box<dyn Error>> {
@@ -94,8 +95,7 @@ pub fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
         &type_map,
     )?;
     let guessed_suffix_array = guessed_suffix_array
-        .into_iter()
-        .map(|s| s as usize)
+        .into_iter().flatten()
         .collect::<Vec<_>>();
 
     let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
@@ -127,7 +127,7 @@ pub fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
 
     Ok(suffix_array
         .into_iter()
-        .map(|s| s as usize)
+        .flatten()
         .collect::<Vec<_>>())
 }
 
@@ -235,8 +235,7 @@ mod tests {
             &cabbage_types,
         )?;
         let guessed_suffix_array = guessed_suffix_array
-            .iter()
-            .map(|&s| s as usize)
+            .into_iter().flatten()
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;

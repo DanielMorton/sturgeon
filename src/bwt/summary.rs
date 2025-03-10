@@ -94,8 +94,7 @@ mod tests {
             &cabbage_types,
         )?;
         let guessed_suffix_array = guessed_suffix_array
-            .iter()
-            .map(|&s| s as usize)
+            .into_iter().flatten()
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
@@ -130,8 +129,7 @@ mod tests {
             &cabbage_types,
         )?;
         let guessed_suffix_array = guessed_suffix_array
-            .iter()
-            .map(|&s| s as usize)
+            .into_iter().flatten()
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
