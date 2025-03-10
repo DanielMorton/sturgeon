@@ -3,7 +3,7 @@ use crate::bwt::lms::{
     accurate_lms_sort, build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s,
 };
 use crate::bwt::summary::summarize_suffix_array;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::error::Error;
 use std::hash::Hash;
 
@@ -103,17 +103,35 @@ pub(crate) fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + O
 
     let summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
 
-    let suffix_array = accurate_lms_sort(
+    let mut suffix_array = accurate_lms_sort(
         text_bytes,
+        char_map,
         &bucket_sizes,
         &summary_suffix_array,
         &summary_suffix_offsets,
     )?;
-    Ok(suffix_array)
+    induce_sort_l(
+        &mut suffix_array,
+        text_bytes,
+        char_map,
+        &bucket_sizes,
+        &type_map,
+    )?;
+    induce_sort_s(
+        &mut suffix_array,
+        text_bytes,
+        char_map,
+        &bucket_sizes,
+        &type_map,
+    )?;
+
+    Ok(suffix_array.into_iter()
+        .map(|s| s as usize)
+        .collect::<Vec<_>>())
 }
 
-fn make_summary_suffix_array<T: Copy + Eq + Hash + Into<usize> + Ord>(
-    summary_string: &[T],
+pub(crate) fn make_summary_suffix_array(
+    summary_string: &[usize],
     summary_alphabet_size: usize,
 ) -> Result<Vec<usize>, Box<dyn Error>> {
     if summary_alphabet_size == summary_string.len() {
@@ -125,16 +143,23 @@ fn make_summary_suffix_array<T: Copy + Eq + Hash + Into<usize> + Ord>(
 
         // Direct indexing approach - more efficient than looping
         for (x, &y) in summary_string.iter().enumerate() {
-            summary_suffix_array[y.into() + 1] = x;
+            summary_suffix_array[y + 1] = x;
         }
 
         Ok(summary_suffix_array)
     } else {
         // More complex case - use recursion
-        let char_map = summary_string
+        let mut char_set = summary_string
             .iter()
+            .collect::<HashSet<_>>()
+            .into_iter()
+            .map(|&s| s)
+            .collect::<Vec<_>>();
+        char_set.sort();
+        let char_map = char_set
+            .into_iter()
             .enumerate()
-            .map(|(i, &s)| (s, i))
+            .map(|(i, s)| (s, i))
             .collect::<HashMap<_, _>>();
         suffix_array_induced_sorting(summary_string, &char_map)
     }
@@ -142,8 +167,12 @@ fn make_summary_suffix_array<T: Copy + Eq + Hash + Into<usize> + Ord>(
 
 #[cfg(test)]
 mod tests {
-    use crate::bwt::suffix_array::suffix_array;
+    use std::collections::HashMap;
+    use crate::bwt::suffix_array::{make_summary_suffix_array, suffix_array, suffix_array_induced_sorting};
     use std::error::Error;
+    use crate::bwt::bucket::char_buckets;
+    use crate::bwt::lms::{build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s};
+    use crate::bwt::summary::summarize_suffix_array;
 
     #[test]
     fn test_suffix_array1() -> Result<(), Box<dyn Error>> {
@@ -177,4 +206,60 @@ mod tests {
         assert_eq!(suffix_array("ABCFED$")?, vec![6, 0, 1, 2, 5, 4, 3]);
         Ok(())
     }
+
+    #[test]
+    fn test_make_summary_suffix_array1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        let guessed_suffix_array = guessed_suffix_array
+            .iter()
+            .map(|&s| s as usize)
+            .collect::<Vec<_>>();
+        let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
+            summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
+        let cabbage_summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+        assert_eq!(cabbage_summary_suffix_array, vec![3, 2, 0, 1]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_suffix_array_induced_sorting1() -> Result<(), Box<dyn Error>> {
+        let text = "cabbage";
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        assert_eq!(suffix_array_induced_sorting(text.as_bytes(), &char_map)?, vec![7, 1, 4, 3, 2, 0, 6, 5]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_suffix_array_induced_sorting2() -> Result<(), Box<dyn Error>> {
+        let text = "baabaabac";
+        let char_map = (0..3)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        assert_eq!(suffix_array_induced_sorting(text.as_bytes(), &char_map)?, vec![9, 1, 4, 2, 5, 7, 0, 3, 6, 8]);
+        Ok(())
+    }
+
 }

@@ -60,3 +60,84 @@ pub(crate) fn summarize_suffix_array<T: PartialEq>(
         summary_suffix_offsets,
     ))
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::bwt::bucket::char_buckets;
+    use crate::bwt::lms::{build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s};
+    use crate::bwt::summary::summarize_suffix_array;
+    use std::collections::HashMap;
+    use std::error::Error;
+
+    #[test]
+    fn test_summarize_suffix_array1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        let guessed_suffix_array = guessed_suffix_array
+            .iter()
+            .map(|&s| s as usize)
+            .collect::<Vec<_>>();
+        let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
+            summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
+        assert_eq!(summary_string, vec![1, 2, 0]);
+        assert_eq!(summary_alphabet_size, 3);
+        assert_eq!(summary_suffix_offsets, vec![1, 4, 7]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_summarize_suffix_array2() -> Result<(), Box<dyn Error>> {
+        let cabbage = "baabaabac".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        let guessed_suffix_array = guessed_suffix_array
+            .iter()
+            .map(|&s| s as usize)
+            .collect::<Vec<_>>();
+        let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
+            summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
+        assert_eq!(summary_string, vec![1, 1, 2, 0]);
+        assert_eq!(summary_alphabet_size, 3);
+        assert_eq!(summary_suffix_offsets, vec![1, 4, 7, 9]);
+        Ok(())
+    }
+}

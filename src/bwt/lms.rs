@@ -147,37 +147,36 @@ pub(crate) fn induce_sort_s<T: Copy + Eq + Hash>(
     Ok(())
 }
 
-pub(crate) fn accurate_lms_sort<T: Copy + Into<usize>>(
+pub(crate) fn accurate_lms_sort<T: Copy + Eq + Hash>(
     text_bytes: &[T],
+    char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
     summary_suffix_array: &[usize],
     summary_suffix_offsets: &[usize],
-) -> Result<Vec<usize>, Box<dyn Error>> {
+) -> Result<Vec<i32>, Box<dyn Error>> {
     let n = text_bytes.len();
     // A suffix for every character, plus the empty suffix
-    let mut suffix_offsets = vec![usize::MAX; n + 1];
+    let mut suffix_offsets = vec![-1; n + 1];
 
     // Find bucket tails for placing suffixes
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
 
     // Iterate through summary suffix array in reverse order
-    for &suffix_index in summary_suffix_array.iter().rev().skip(1) {
-        if suffix_index > 1 {
-            let string_index = summary_suffix_offsets[suffix_index];
+    for &suffix_index in summary_suffix_array.iter().skip(2).rev() {
+        let string_index = summary_suffix_offsets[suffix_index];
 
-            // Which bucket does this suffix go into?
-            let bucket_index = text_bytes[string_index].into();
+        // Which bucket does this suffix go into?
+        let bucket_index = *char_map.get(&text_bytes[string_index]).unwrap();
 
-            // Add the suffix at the tail of the bucket
-            suffix_offsets[bucket_tails[bucket_index]] = string_index;
+        // Add the suffix at the tail of the bucket
+        suffix_offsets[bucket_tails[bucket_index]] = string_index as i32;
 
-            // Move the tail pointer down
-            bucket_tails[bucket_index] -= 1;
-        }
+        // Move the tail pointer down
+        bucket_tails[bucket_index] -= 1;
     }
 
     // Always include the empty suffix at the beginning
-    suffix_offsets[0] = n;
+    suffix_offsets[0] = n as i32;
 
     Ok(suffix_offsets)
 }
@@ -185,9 +184,11 @@ pub(crate) fn accurate_lms_sort<T: Copy + Into<usize>>(
 #[cfg(test)]
 mod tests {
     use crate::bwt::bucket::char_buckets;
-    use crate::bwt::lms::{build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s, L, S};
+    use crate::bwt::lms::{accurate_lms_sort, build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s, L, S};
     use std::collections::HashMap;
     use std::error::Error;
+    use crate::bwt::suffix_array::make_summary_suffix_array;
+    use crate::bwt::summary::summarize_suffix_array;
 
     #[test]
     fn test_build_type_map1() -> Result<(), Box<dyn Error>> {
@@ -308,6 +309,43 @@ mod tests {
             &cabbage_types,
         )?;
         assert_eq!(guessed_suffix_array, vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_accurate_lms_sort1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types,
+        )?;
+        let guessed_suffix_array = guessed_suffix_array
+            .iter()
+            .map(|&s| s as usize)
+            .collect::<Vec<_>>();
+        let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
+            summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
+        let cabbage_summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+        let mut suffix_array =
+            accurate_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_summary_suffix_array, &summary_suffix_offsets)?;
+        assert_eq!(suffix_array, vec![7, 1, 4, -1, -1, -1, -1, -1]);
         Ok(())
     }
 }
