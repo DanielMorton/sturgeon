@@ -228,12 +228,9 @@ mod tests {
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
-        assert_eq!(
-            guessed_suffix_array,
-            vec![7, 4, 1, 3, 2, 0, 6, 5]
-        );
+        assert_eq!(guessed_suffix_array, vec![7, 4, 1, 3, 2, 0, 6, 5]);
         Ok(())
     }
 
@@ -252,12 +249,9 @@ mod tests {
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
-        assert_eq!(
-            guessed_suffix_array,
-            vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]
-        );
+        assert_eq!(guessed_suffix_array, vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]);
         Ok(())
     }
 
@@ -276,19 +270,16 @@ mod tests {
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
         induce_sort_s(
             &mut guessed_suffix_array,
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
-        assert_eq!(
-            guessed_suffix_array,
-            vec![7, 1, 4, 3, 2, 0, 6, 5]
-        );
+        assert_eq!(guessed_suffix_array, vec![7, 1, 4, 3, 2, 0, 6, 5]);
         Ok(())
     }
 
@@ -307,19 +298,16 @@ mod tests {
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
         induce_sort_s(
             &mut guessed_suffix_array,
             cabbage,
             &char_map,
             &cabbage_bucket,
-            &cabbage_types
+            &cabbage_types,
         )?;
-        assert_eq!(
-            guessed_suffix_array,
-            vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]
-        );
+        assert_eq!(guessed_suffix_array, vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]);
         Ok(())
     }
 }
