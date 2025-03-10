@@ -1,4 +1,11 @@
+use crate::bwt::bucket::char_buckets;
+use crate::bwt::lms::{
+    accurate_lms_sort, build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s,
+};
+use crate::bwt::summary::summarize_suffix_array;
+use std::collections::HashMap;
 use std::error::Error;
+use std::hash::Hash;
 
 pub fn suffix_array(text: &str) -> Result<Vec<usize>, Box<dyn Error>> {
     let text_bytes = text.as_bytes();
@@ -62,6 +69,73 @@ pub(crate) fn suffix_array_bytes(text_bytes: &[u8]) -> Result<Vec<usize>, Box<dy
     }
 
     Ok(suffix)
+}
+
+pub(crate) fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
+    text_bytes: &[T],
+    char_map: &HashMap<T, usize>,
+) -> Result<Vec<usize>, Box<dyn Error>> {
+    let type_map = build_type_map(text_bytes)?;
+
+    let bucket_sizes = char_buckets(text_bytes, char_map)?;
+    let mut guessed_suffix_array = guess_lms_sort(text_bytes, &bucket_sizes, &type_map)?;
+    induce_sort_l(
+        &mut guessed_suffix_array,
+        text_bytes,
+        &bucket_sizes,
+        &type_map,
+    )?;
+    induce_sort_s(
+        &mut guessed_suffix_array,
+        text_bytes,
+        &bucket_sizes,
+        &type_map,
+    )?;
+    let guessed_suffix_array = guessed_suffix_array
+        .into_iter()
+        .map(|s| s as usize)
+        .collect::<Vec<_>>();
+
+    let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
+        summarize_suffix_array(text_bytes, &guessed_suffix_array, &type_map)?;
+
+    let summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+
+    let suffix_array = accurate_lms_sort(
+        text_bytes,
+        &bucket_sizes,
+        &summary_suffix_array,
+        &summary_suffix_offsets,
+    )?;
+    Ok(suffix_array)
+}
+
+fn make_summary_suffix_array<T: Copy + Eq + Hash + Into<usize> + Ord>(
+    summary_string: &[T],
+    summary_alphabet_size: usize,
+) -> Result<Vec<usize>, Box<dyn Error>> {
+    if summary_alphabet_size == summary_string.len() {
+        // Every character appears exactly once, so we can use bucket sort
+        let mut summary_suffix_array = vec![usize::MAX; summary_string.len() + 1];
+
+        // Always include the empty suffix at the beginning
+        summary_suffix_array[0] = summary_string.len();
+
+        // Direct indexing approach - more efficient than looping
+        for (x, &y) in summary_string.iter().enumerate() {
+            summary_suffix_array[y.into() + 1] = x;
+        }
+
+        Ok(summary_suffix_array)
+    } else {
+        // More complex case - use recursion
+        let char_map = summary_string
+            .iter()
+            .enumerate()
+            .map(|(i, &s)| (s, i))
+            .collect::<HashMap<_, _>>();
+        suffix_array_induced_sorting(summary_string, &char_map)
+    }
 }
 
 #[cfg(test)]
