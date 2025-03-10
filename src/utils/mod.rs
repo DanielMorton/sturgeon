@@ -14,7 +14,7 @@ mod union;
 mod vec;
 
 pub use blosum::blosum_matrix;
-pub use dna::{DNA, DNA_INDEX};
+pub use dna::{DNA, DNA_BYTES, DNA_INDEX};
 pub use fasta::Fasta;
 pub use graph::{add_weighted_edge_pair, Graph, WeightedGraph};
 pub use nucleotide::{InvalidNucleotideError, InvalidNucleotidePositionError};

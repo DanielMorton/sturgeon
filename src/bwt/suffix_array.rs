@@ -71,7 +71,7 @@ pub(crate) fn suffix_array_bytes(text_bytes: &[u8]) -> Result<Vec<usize>, Box<dy
     Ok(suffix)
 }
 
-pub(crate) fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
+pub fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + Ord>(
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
 ) -> Result<Vec<usize>, Box<dyn Error>> {

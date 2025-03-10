@@ -20,3 +20,12 @@ pub static DNA_INDEX: Lazy<HashMap<char, usize>> = Lazy::new(|| {
     m.insert('T', 3);
     m
 });
+
+pub static DNA_BYTES: Lazy<HashMap<u8, usize>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    m.insert(b'A', 0);
+    m.insert(b'C', 1);
+    m.insert(b'G', 2);
+    m.insert(b'T', 3);
+    m
+});
