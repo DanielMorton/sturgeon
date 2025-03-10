@@ -1,5 +1,7 @@
 use crate::bwt::bucket::{find_bucket_heads, find_bucket_tails};
+use std::collections::HashMap;
 use std::error::Error;
+use std::hash::Hash;
 
 pub const L: u8 = b'L';
 pub const S: u8 = b'S';
@@ -80,8 +82,9 @@ pub(crate) fn lms_substrings_are_equal<T: PartialEq>(
     }
 }
 
-pub(crate) fn guess_lms_sort<T: Copy + Into<usize>>(
+pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
     text_bytes: &[T],
+    char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
     type_map: &[u8],
 ) -> Result<Vec<i32>, Box<dyn Error>> {
@@ -91,7 +94,7 @@ pub(crate) fn guess_lms_sort<T: Copy + Into<usize>>(
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
     for i in 0..n {
         if is_lms_char(type_map, i)? {
-            let bucket_index = text_bytes[i].into();
+            let bucket_index = *char_map.get(&text_bytes[i]).unwrap();
             guessed_suffix_array[bucket_tails[bucket_index]] = i as i32;
             bucket_tails[bucket_index] -= 1;
         }
@@ -101,9 +104,10 @@ pub(crate) fn guess_lms_sort<T: Copy + Into<usize>>(
     Ok(guessed_suffix_array)
 }
 
-pub(crate) fn induce_sort_l<T: Copy + Into<usize>>(
+pub(crate) fn induce_sort_l<T: Copy + Eq + Hash>(
     guessed_suffix_array: &mut [i32],
     text_bytes: &[T],
+    char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
     type_map: &[u8],
 ) -> Result<(), Box<dyn Error>> {
@@ -113,7 +117,7 @@ pub(crate) fn induce_sort_l<T: Copy + Into<usize>>(
         if guessed_suffix_array[i] >= 0 {
             let j = guessed_suffix_array[i] - 1;
             if j >= 0 && type_map[j as usize] == L {
-                let bucket_index = text_bytes[j as usize].into();
+                let bucket_index = *char_map.get(&text_bytes[j as usize]).unwrap();
                 guessed_suffix_array[bucket_heads[bucket_index]] = j;
                 bucket_heads[bucket_index] += 1
             }
@@ -122,9 +126,10 @@ pub(crate) fn induce_sort_l<T: Copy + Into<usize>>(
     Ok(())
 }
 
-pub(crate) fn induce_sort_s<T: Copy + Into<usize>>(
+pub(crate) fn induce_sort_s<T: Copy + Eq + Hash>(
     guessed_suffix_array: &mut [i32],
     text_bytes: &[T],
+    char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
     type_map: &[u8],
 ) -> Result<(), Box<dyn Error>> {
@@ -134,7 +139,7 @@ pub(crate) fn induce_sort_s<T: Copy + Into<usize>>(
     for i in (0..=n).rev() {
         let j = guessed_suffix_array[i] - 1;
         if j >= 0 && type_map[j as usize] == S {
-            let bucket_index = text_bytes[j as usize].into();
+            let bucket_index = *char_map.get(&text_bytes[j as usize]).unwrap();
             guessed_suffix_array[bucket_tails[bucket_index]] = j;
             bucket_tails[bucket_index] -= 1;
         }
@@ -177,19 +182,143 @@ pub(crate) fn accurate_lms_sort<T: Copy + Into<usize>>(
     Ok(suffix_offsets)
 }
 
-
 #[cfg(test)]
 mod tests {
+    use crate::bwt::bucket::char_buckets;
+    use crate::bwt::lms::{build_type_map, guess_lms_sort, induce_sort_l, induce_sort_s, L, S};
+    use std::collections::HashMap;
     use std::error::Error;
-    use crate::bwt::lms::{build_type_map, L, S};
 
     #[test]
     fn test_build_type_map1() -> Result<(), Box<dyn Error>> {
         assert_eq!(
-            build_type_map(
-                "cabbage".as_bytes()
-            )?,
-            vec![L, S, L, L,S, L,L, S]
+            build_type_map("cabbage".as_bytes())?,
+            vec![L, S, L, L, S, L, L, S]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_guess_lms_sort1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        assert_eq!(
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?,
+            vec![7, 4, 1, -1, -1, -1, -1, -1]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_induce_sort_l1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        assert_eq!(
+            guessed_suffix_array,
+            vec![7, 4, 1, 3, 2, 0, 6, 5]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_induce_sort_l2() -> Result<(), Box<dyn Error>> {
+        let cabbage = "baabaabac".as_bytes();
+        let char_map = (0..3)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        assert_eq!(
+            guessed_suffix_array,
+            vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_induce_sort_s1() -> Result<(), Box<dyn Error>> {
+        let cabbage = "cabbage".as_bytes();
+        let char_map = (0..7)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        assert_eq!(
+            guessed_suffix_array,
+            vec![7, 1, 4, 3, 2, 0, 6, 5]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_induce_sort_s2() -> Result<(), Box<dyn Error>> {
+        let cabbage = "baabaabac".as_bytes();
+        let char_map = (0..3)
+            .map(|n| (b'a' + n, n as usize))
+            .collect::<HashMap<_, _>>();
+        let cabbage_bucket = char_buckets(cabbage, &char_map)?;
+        let cabbage_types = build_type_map(cabbage)?;
+        let mut guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        induce_sort_l(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        induce_sort_s(
+            &mut guessed_suffix_array,
+            cabbage,
+            &char_map,
+            &cabbage_bucket,
+            &cabbage_types
+        )?;
+        assert_eq!(
+            guessed_suffix_array,
+            vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]
         );
         Ok(())
     }

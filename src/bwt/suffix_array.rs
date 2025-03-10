@@ -78,16 +78,18 @@ pub(crate) fn suffix_array_induced_sorting<T: Copy + Eq + Hash + Into<usize> + O
     let type_map = build_type_map(text_bytes)?;
 
     let bucket_sizes = char_buckets(text_bytes, char_map)?;
-    let mut guessed_suffix_array = guess_lms_sort(text_bytes, &bucket_sizes, &type_map)?;
+    let mut guessed_suffix_array = guess_lms_sort(text_bytes, char_map, &bucket_sizes, &type_map)?;
     induce_sort_l(
         &mut guessed_suffix_array,
         text_bytes,
+        char_map,
         &bucket_sizes,
         &type_map,
     )?;
     induce_sort_s(
         &mut guessed_suffix_array,
         text_bytes,
+        char_map,
         &bucket_sizes,
         &type_map,
     )?;
