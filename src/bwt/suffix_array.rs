@@ -151,10 +151,9 @@ pub(crate) fn make_summary_suffix_array(
     } else {
         // More complex case - use recursion
         let mut char_set = summary_string
-            .iter()
+            .iter().copied()
             .collect::<HashSet<_>>()
             .into_iter()
-            .map(|&s| s)
             .collect::<Vec<_>>();
         char_set.sort();
         let char_map = char_set

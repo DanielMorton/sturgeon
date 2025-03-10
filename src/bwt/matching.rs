@@ -40,7 +40,7 @@ fn bw_matching(bwt: &str, patterns: &[&str]) -> Result<Vec<usize>, Box<dyn Error
     let n = bwt_bytes.len();
 
     // Count character occurrences
-    let counts = char_counts(&bwt_bytes)?;
+    let counts = char_counts(bwt_bytes)?;
 
     // Calculate starting positions in first column
     let mut first_col_starts = [0; COUNTS];

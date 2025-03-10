@@ -1,13 +1,13 @@
+use std::cmp::Ordering;
 use crate::bwt::bucket::{find_bucket_heads, find_bucket_tails};
 use std::collections::HashMap;
 use std::error::Error;
-use std::fmt::Display;
 use std::hash::Hash;
 
 pub const L: u8 = b'L';
 pub const S: u8 = b'S';
 
-pub(crate) fn build_type_map<T:Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn Error>> {
+pub(crate) fn build_type_map<T: Eq + Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn Error>> {
     Ok(if data.is_empty() {
         vec![S]
     } else {
@@ -16,13 +16,11 @@ pub(crate) fn build_type_map<T:Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn Error
         type_map[n] = S;
         type_map[n - 1] = L;
         for i in (0..=n - 2).rev() {
-            if data[i] > data[i + 1] {
-                type_map[i] = L;
-            } else if data[i] < data[i + 1] {
-                type_map[i] = S;
-            } else {
-                type_map[i] = type_map[i+1];
-            }
+            type_map[i] = match data[i].cmp(&data[i + 1]) {
+                Ordering::Less => S,
+                Ordering::Equal => type_map[i + 1],
+                Ordering::Greater => L
+            };
         }
         type_map
     })
@@ -31,10 +29,8 @@ pub(crate) fn build_type_map<T:Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn Error
 pub(crate) fn is_lms_char(type_map: &[u8], offset: usize) -> Result<bool, Box<dyn Error>> {
     Ok(if offset == 0 {
         false
-    } else if type_map[offset] == S && type_map[offset - 1] == L {
-        true
     } else {
-        false
+        type_map[offset] == S && type_map[offset - 1] == L
     })
 }
 
@@ -88,25 +84,25 @@ pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
     char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
     type_map: &[u8],
-) -> Result<Vec<Option<usize>>, Box<dyn Error>> {
+) -> Result<Vec<i32>, Box<dyn Error>> {
     let n = text_bytes.len();
-    let mut guessed_suffix_array = vec![None; n + 1];
+    let mut guessed_suffix_array = vec![-1; n + 1];
 
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
-    for i in 0..n {
+    for (i, byte) in text_bytes.iter().enumerate() {
         if is_lms_char(type_map, i)? {
-            let bucket_index = *char_map.get(&text_bytes[i]).unwrap();
-            guessed_suffix_array[bucket_tails[bucket_index]] = Some(i);
+            let bucket_index = *char_map.get(byte).unwrap();
+            guessed_suffix_array[bucket_tails[bucket_index]] = i as i32;
             bucket_tails[bucket_index] -= 1;
         }
     }
-    guessed_suffix_array[0] = Some(n);
+    guessed_suffix_array[0] = n as i32;
 
     Ok(guessed_suffix_array)
 }
 
-pub(crate) fn induce_sort_l<T: Copy + Display + Eq + Hash>(
-    guessed_suffix_array: &mut [Option<usize>],
+pub(crate) fn induce_sort_l<T: Copy + Eq + Hash>(
+    guessed_suffix_array: &mut [i32],
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
@@ -115,25 +111,20 @@ pub(crate) fn induce_sort_l<T: Copy + Display + Eq + Hash>(
     let mut bucket_heads = find_bucket_heads(bucket_sizes)?;
     let n = text_bytes.len();
     for i in 0..=n {
-        let Some(j) = guessed_suffix_array[i] else { continue };
-
-        if j == 0 { continue };
-
-        let prev = j - 1;
-        if type_map[prev] == L {
-            // Use direct array indexing with unwrap_or_else for better performance
-            let bucket_index = *char_map.get(&text_bytes[prev])
-                .expect(&format!("Character {} should exist in char_map", &text_bytes[prev]));
-
-            guessed_suffix_array[bucket_heads[bucket_index]] = Some(prev);
-            bucket_heads[bucket_index] += 1;
+        if guessed_suffix_array[i] >= 0 {
+            let j = guessed_suffix_array[i] - 1;
+            if j >= 0 && type_map[j as usize] == L {
+                let bucket_index = *char_map.get(&text_bytes[j as usize]).unwrap();
+                guessed_suffix_array[bucket_heads[bucket_index]] = j;
+                bucket_heads[bucket_index] += 1
+            }
         }
     }
     Ok(())
 }
 
-pub(crate) fn induce_sort_s<T: Copy + Display + Eq + Hash>(
-    guessed_suffix_array: &mut [Option<usize>],
+pub(crate) fn induce_sort_s<T: Copy + Eq + Hash>(
+    guessed_suffix_array: &mut [i32],
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
@@ -143,15 +134,10 @@ pub(crate) fn induce_sort_s<T: Copy + Display + Eq + Hash>(
     let n = text_bytes.len();
 
     for i in (0..=n).rev() {
-        let Some(j) = guessed_suffix_array[i] else { continue };
-
-        if j == 0 { continue };
-
-        let prev = j - 1;
-        if type_map[prev] == S {
-            let bucket_index = *char_map.get(&text_bytes[prev])
-                .expect(&format!("Character {} should exist in char_map", &text_bytes[prev]));
-            guessed_suffix_array[bucket_tails[bucket_index]] = Some(prev);
+        let j = guessed_suffix_array[i] - 1;
+        if j >= 0 && type_map[j as usize] == S {
+            let bucket_index = *char_map.get(&text_bytes[j as usize]).unwrap();
+            guessed_suffix_array[bucket_tails[bucket_index]] = j;
             bucket_tails[bucket_index] -= 1;
         }
     }
@@ -164,10 +150,10 @@ pub(crate) fn accurate_lms_sort<T: Copy + Eq + Hash>(
     bucket_sizes: &[usize],
     summary_suffix_array: &[usize],
     summary_suffix_offsets: &[usize],
-) -> Result<Vec<Option<usize>>, Box<dyn Error>> {
+) -> Result<Vec<i32>, Box<dyn Error>> {
     let n = text_bytes.len();
     // A suffix for every character, plus the empty suffix
-    let mut suffix_offsets = vec![None; n + 1];
+    let mut suffix_offsets = vec![-1; n + 1];
 
     // Find bucket tails for placing suffixes
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
@@ -180,14 +166,14 @@ pub(crate) fn accurate_lms_sort<T: Copy + Eq + Hash>(
         let bucket_index = *char_map.get(&text_bytes[string_index]).unwrap();
 
         // Add the suffix at the tail of the bucket
-        suffix_offsets[bucket_tails[bucket_index]] = Some(string_index);
+        suffix_offsets[bucket_tails[bucket_index]] = string_index as i32;
 
         // Move the tail pointer down
         bucket_tails[bucket_index] -= 1;
     }
 
     // Always include the empty suffix at the beginning
-    suffix_offsets[0] = Some(n);
+    suffix_offsets[0] = n as i32;
 
     Ok(suffix_offsets)
 }
@@ -220,9 +206,10 @@ mod tests {
             .collect::<HashMap<_, _>>();
         let cabbage_bucket = char_buckets(cabbage, &char_map)?;
         let cabbage_types = build_type_map(cabbage)?;
-        let guessed_suffix_array = guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
-        let gsa = guessed_suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(gsa, vec![7, 4, 1, -1, -1, -1, -1, -1]);
+        assert_eq!(
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?,
+            vec![7, 4, 1, -1, -1, -1, -1, -1]
+        );
         Ok(())
     }
 
@@ -243,8 +230,7 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(gsa, vec![7, 4, 1, 3, 2, 0, 6, 5]);
+        assert_eq!(guessed_suffix_array, vec![7, 4, 1, 3, 2, 0, 6, 5]);
         Ok(())
     }
 
@@ -265,8 +251,7 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(gsa, vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]);
+        assert_eq!(guessed_suffix_array, vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]);
         Ok(())
     }
 
@@ -294,8 +279,7 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(gsa, vec![7, 1, 4, 3, 2, 0, 6, 5]);
+        assert_eq!(guessed_suffix_array, vec![7, 1, 4, 3, 2, 0, 6, 5]);
         Ok(())
     }
 
@@ -323,8 +307,7 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(gsa, vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]);
+        assert_eq!(guessed_suffix_array, vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]);
         Ok(())
     }
 
@@ -353,21 +336,21 @@ mod tests {
             &cabbage_types,
         )?;
         let guessed_suffix_array = guessed_suffix_array
-            .into_iter().flatten()
+            .iter()
+            .map(|&s| s as usize)
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;
         let cabbage_summary_suffix_array =
             make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
-        let suffix_array = accurate_lms_sort(
+        let mut suffix_array = accurate_lms_sort(
             cabbage,
             &char_map,
             &cabbage_bucket,
             &cabbage_summary_suffix_array,
             &summary_suffix_offsets,
         )?;
-        let sa = suffix_array.iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
-        assert_eq!(sa, vec![7, 1, 4, -1, -1, -1, -1, -1]);
+        assert_eq!(suffix_array, vec![7, 1, 4, -1, -1, -1, -1, -1]);
         Ok(())
     }
 }
