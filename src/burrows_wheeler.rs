@@ -1,4 +1,4 @@
-use crate::bwt::{fasta_burrows_wheeler_transform, fasta_burrows_wheeler_transform_sa_is, suffix_array, suffix_array_induced_sorting};
+use crate::bwt::{fasta_burrows_wheeler_transform, fasta_burrows_wheeler_transform_sa_is};
 use crate::utils::{print_hms, Fasta, DNA_BYTES};
 use clap::Parser;
 use std::error::Error;
