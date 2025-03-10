@@ -1,5 +1,5 @@
-use std::cmp::Ordering;
 use crate::bwt::bucket::{find_bucket_heads, find_bucket_tails};
+use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::error::Error;
 use std::hash::Hash;
@@ -19,7 +19,7 @@ pub(crate) fn build_type_map<T: Eq + Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn
             type_map[i] = match data[i].cmp(&data[i + 1]) {
                 Ordering::Less => S,
                 Ordering::Equal => type_map[i + 1],
-                Ordering::Greater => L
+                Ordering::Greater => L,
             };
         }
         type_map
@@ -111,15 +111,20 @@ pub(crate) fn induce_sort_l<T: Copy + Eq + Hash>(
     let mut bucket_heads = find_bucket_heads(bucket_sizes)?;
     let n = text_bytes.len();
     for i in 0..=n {
-        let Some(j) = guessed_suffix_array[i] else { continue };
+        let Some(j) = guessed_suffix_array[i] else {
+            continue;
+        };
 
         // Check bounds first to avoid unnecessary conditions
-        if j == 0 { continue };
+        if j == 0 {
+            continue;
+        };
 
         let prev_pos = j - 1;
         if type_map[prev_pos] == L {
             // Use direct array indexing with unwrap_or_else for better performance
-            let bucket_index = *char_map.get(&text_bytes[prev_pos])
+            let bucket_index = *char_map
+                .get(&text_bytes[prev_pos])
                 .expect("Character should exist in char_map");
 
             guessed_suffix_array[bucket_heads[bucket_index]] = Some(prev_pos);
@@ -140,10 +145,14 @@ pub(crate) fn induce_sort_s<T: Copy + Eq + Hash>(
     let n = text_bytes.len();
 
     for i in (0..=n).rev() {
-        let Some(j) = guessed_suffix_array[i] else { continue };
+        let Some(j) = guessed_suffix_array[i] else {
+            continue;
+        };
 
         // Check bounds first to avoid unnecessary conditions
-        if j == 0 { continue };
+        if j == 0 {
+            continue;
+        };
 
         let prev_pos = j - 1;
         if type_map[prev_pos] == S {
@@ -217,8 +226,12 @@ mod tests {
             .collect::<HashMap<_, _>>();
         let cabbage_bucket = char_buckets(cabbage, &char_map)?;
         let cabbage_types = build_type_map(cabbage)?;
-        let guessed_suffix_array = guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
-        let gsa = guessed_suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let guessed_suffix_array =
+            guess_lms_sort(cabbage, &char_map, &cabbage_bucket, &cabbage_types)?;
+        let gsa = guessed_suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(gsa, vec![7, 4, 1, -1, -1, -1, -1, -1]);
         Ok(())
     }
@@ -240,7 +253,10 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let gsa = guessed_suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(gsa, vec![7, 4, 1, 3, 2, 0, 6, 5]);
         Ok(())
     }
@@ -262,7 +278,10 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let gsa = guessed_suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(gsa, vec![9, -1, -1, 7, 4, 1, 6, 3, 0, 8]);
         Ok(())
     }
@@ -291,7 +310,10 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let gsa = guessed_suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(gsa, vec![7, 1, 4, 3, 2, 0, 6, 5]);
         Ok(())
     }
@@ -320,7 +342,10 @@ mod tests {
             &cabbage_bucket,
             &cabbage_types,
         )?;
-        let gsa = guessed_suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let gsa = guessed_suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(gsa, vec![9, 4, 1, 5, 2, 7, 6, 3, 0, 8]);
         Ok(())
     }
@@ -364,7 +389,10 @@ mod tests {
             &cabbage_summary_suffix_array,
             &summary_suffix_offsets,
         )?;
-        let sa = suffix_array.into_iter().map(|g| g.map(|s| s as i32).unwrap_or(-1)).collect::<Vec<_>>();
+        let sa = suffix_array
+            .into_iter()
+            .map(|g| g.map(|s| s as i32).unwrap_or(-1))
+            .collect::<Vec<_>>();
         assert_eq!(sa, vec![7, 1, 4, -1, -1, -1, -1, -1]);
         Ok(())
     }

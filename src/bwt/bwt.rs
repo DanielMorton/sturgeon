@@ -1,6 +1,9 @@
 use crate::bwt::suffix_array::suffix_array_bytes;
+use crate::bwt::suffix_array_induced_sorting;
 use crate::utils::Fasta;
+use std::collections::HashMap;
 use std::error::Error;
+use std::hash::Hash;
 
 pub const COUNTS: usize = 256;
 
@@ -33,6 +36,34 @@ pub fn fasta_burrows_wheeler_transform(fasta: &Fasta) -> Result<String, Box<dyn 
         let text = format!("{}$", fasta.text);
         burrows_wheeler_transform(&text)
     }
+}
+
+pub fn burrows_wheeler_transform_sa_is(
+    text: &str,
+    char_map: &HashMap<u8, usize>,
+) -> Result<String, Box<dyn Error>> {
+    let text_bytes = text.as_bytes();
+    let suffixes = suffix_array_induced_sorting(text_bytes, char_map)?;
+    let n = text.len();
+
+    let bwt = suffixes
+        .iter()
+        .map(|&s| {
+            if s == 0 {
+                b'$'
+            } else {
+                text_bytes[(s + n - 1) % n]
+            }
+        })
+        .collect::<Vec<_>>();
+    Ok(String::from_utf8(bwt)?)
+}
+
+pub fn fasta_burrows_wheeler_transform_sa_is(
+    fasta: &Fasta,
+    char_map: &HashMap<u8, usize>,
+) -> Result<String, Box<dyn Error>> {
+    burrows_wheeler_transform_sa_is(&fasta.text, char_map)
 }
 
 pub fn inverse_burrows_wheeler_transform(bwt: &str) -> Result<String, Box<dyn Error>> {

@@ -95,7 +95,8 @@ pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> 
         &type_map,
     )?;
     let guessed_suffix_array = guessed_suffix_array
-        .into_iter().flatten()
+        .into_iter()
+        .flatten()
         .collect::<Vec<_>>();
 
     let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
@@ -125,10 +126,7 @@ pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> 
         &type_map,
     )?;
 
-    Ok(suffix_array
-        .into_iter()
-        .flatten()
-        .collect::<Vec<_>>())
+    Ok(suffix_array.into_iter().flatten().collect::<Vec<_>>())
 }
 
 pub(crate) fn make_summary_suffix_array(
@@ -151,7 +149,8 @@ pub(crate) fn make_summary_suffix_array(
     } else {
         // More complex case - use recursion
         let mut char_set = summary_string
-            .iter().copied()
+            .iter()
+            .copied()
             .collect::<HashSet<_>>()
             .into_iter()
             .collect::<Vec<_>>();
@@ -234,7 +233,8 @@ mod tests {
             &cabbage_types,
         )?;
         let guessed_suffix_array = guessed_suffix_array
-            .into_iter().flatten()
+            .into_iter()
+            .flatten()
             .collect::<Vec<_>>();
         let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
             summarize_suffix_array(cabbage, &guessed_suffix_array, &cabbage_types)?;

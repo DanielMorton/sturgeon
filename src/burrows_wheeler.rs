@@ -1,9 +1,7 @@
-use std::collections::{HashMap, HashSet};
-use crate::bwt::{fasta_burrows_wheeler_transform, suffix_array, suffix_array_induced_sorting};
-use crate::utils::{print_hms, Fasta, DNA_INDEX, DNA_BYTES};
+use crate::bwt::{fasta_burrows_wheeler_transform, fasta_burrows_wheeler_transform_sa_is, suffix_array, suffix_array_induced_sorting};
+use crate::utils::{print_hms, Fasta, DNA_BYTES};
 use clap::Parser;
 use std::error::Error;
-use std::fs;
 use std::time::Instant;
 
 #[derive(Parser)]
@@ -22,22 +20,19 @@ impl BWTArgs {
 pub fn run_bwt(args: BWTArgs) -> Result<(), Box<dyn Error>> {
     let input_file = args.get_input()?;
     let fasta = Fasta::read_file(&input_file)?;
-
-    /*let start = Instant::now();
-    let text = format!("{}$", &fasta.text);
-    let suffix_array = suffix_array(&text)?;
-    print_hms(&start);*/
     let start = Instant::now();
-    let sa_is = suffix_array_induced_sorting(&fasta.text.as_bytes(), &DNA_BYTES)?;
+    let bwt = fasta_burrows_wheeler_transform(&fasta)?;
     print_hms(&start);
-    //println!("Suffix Array Len {}", suffix_array.len());
-    println!("SA-IS Len {}", sa_is.len());
-    println!("SA-IS tail {:?}", &sa_is[sa_is.len()-11..sa_is.len()-1]);
-    //let start = Instant::now();
-    //let bwt = fasta_burrows_wheeler_transform(&fasta)?;
-    //print_hms(&start);
 
-    //let output_file = format!("{}_bwt.txt", input_file.split('.').next().unwrap());
+    let start = Instant::now();
+    let bwt_sa_is = fasta_burrows_wheeler_transform_sa_is(&fasta, &DNA_BYTES)?;
+    print_hms(&start);
+    println!("{} {}", bwt.len(), bwt_sa_is.len());
+    println!("{}", &bwt[..10]);
+    println!("{}", &bwt_sa_is[..10]);
+    println!("{}", bwt == bwt_sa_is);
+
+    let output_file = format!("{}_bwt.txt", input_file.split('.').next().unwrap());
     //fs::write(output_file, bwt).expect("Unable to write file");
     Ok(())
 }
