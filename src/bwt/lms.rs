@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use crate::bwt::bucket::{find_bucket_heads, find_bucket_tails};
 use std::collections::HashMap;
 use std::error::Error;
@@ -15,13 +16,11 @@ pub(crate) fn build_type_map<T: Eq + Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn
         type_map[n] = S;
         type_map[n - 1] = L;
         for i in (0..=n - 2).rev() {
-            if data[i] > data[i + 1] {
-                type_map[i] = L;
-            } else if data[i] == data[i + 1] && type_map[i + 1] == L {
-                type_map[i] = L;
-            } else {
-                type_map[i] = S;
-            }
+            type_map[i] = match data[i].cmp(&data[i + 1]) {
+                Ordering::Less => S,
+                Ordering::Equal => type_map[i + 1],
+                Ordering::Greater => L
+            };
         }
         type_map
     })
@@ -30,10 +29,8 @@ pub(crate) fn build_type_map<T: Eq + Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn
 pub(crate) fn is_lms_char(type_map: &[u8], offset: usize) -> Result<bool, Box<dyn Error>> {
     Ok(if offset == 0 {
         false
-    } else if type_map[offset] == S && type_map[offset - 1] == L {
-        true
     } else {
-        false
+        type_map[offset] == S && type_map[offset - 1] == L
     })
 }
 
@@ -92,9 +89,9 @@ pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
     let mut guessed_suffix_array = vec![-1; n + 1];
 
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
-    for i in 0..n {
+    for (i, byte) in text_bytes.iter().enumerate() {
         if is_lms_char(type_map, i)? {
-            let bucket_index = *char_map.get(&text_bytes[i]).unwrap();
+            let bucket_index = *char_map.get(byte).unwrap();
             guessed_suffix_array[bucket_tails[bucket_index]] = i as i32;
             bucket_tails[bucket_index] -= 1;
         }

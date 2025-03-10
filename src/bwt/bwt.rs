@@ -14,7 +14,7 @@ pub(crate) fn char_counts(bwt_bytes: &[u8]) -> Result<[usize; COUNTS], Box<dyn E
 
 pub fn burrows_wheeler_transform(text: &str) -> Result<String, Box<dyn Error>> {
     let text_bytes = text.as_bytes();
-    let suffixes = suffix_array_bytes(&text_bytes)?;
+    let suffixes = suffix_array_bytes(text_bytes)?;
     let n = text.len();
 
     // Construct BWT
@@ -43,7 +43,7 @@ pub fn inverse_burrows_wheeler_transform(bwt: &str) -> Result<String, Box<dyn Er
     }
 
     // Count character occurrences
-    let counts = char_counts(&bwt_bytes)?;
+    let counts = char_counts(bwt_bytes)?;
 
     // Calculate starting positions for each character in first column
     let mut cum_sum = 0;
