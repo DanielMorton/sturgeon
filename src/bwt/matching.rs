@@ -1,5 +1,5 @@
+use crate::bwt::bwt::char_counts;
 use std::collections::HashMap;
-use crate::bwt::bwt::{char_counts};
 use std::error::Error;
 
 fn bwt_match_count(
@@ -38,11 +38,14 @@ fn bwt_match_count(
 
 fn get_first_col_starts(counts: &[usize]) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut total = 0;
-    Ok(counts.iter().map(|&c| {
-        let fcs = total;
-        total += c;
-        fcs
-    }).collect::<Vec<_>>())
+    Ok(counts
+        .iter()
+        .map(|&c| {
+            let fcs = total;
+            total += c;
+            fcs
+        })
+        .collect::<Vec<_>>())
 }
 
 fn calculate_occurrences(
@@ -67,9 +70,12 @@ fn calculate_occurrences(
     Ok(occurrences)
 }
 
-
 // More optimized implementation using arrays instead of HashMaps for better performance
-fn bw_matching(bwt: &str, patterns: &[&str], char_map: &HashMap<u8, usize>) -> Result<Vec<usize>, Box<dyn Error>> {
+fn bw_matching(
+    bwt: &str,
+    patterns: &[&str],
+    char_map: &HashMap<u8, usize>,
+) -> Result<Vec<usize>, Box<dyn Error>> {
     let bwt_bytes = bwt.as_bytes();
 
     // Count character occurrences
@@ -93,8 +99,8 @@ fn bw_matching(bwt: &str, patterns: &[&str], char_map: &HashMap<u8, usize>) -> R
 #[cfg(test)]
 mod tests {
     use crate::bwt::matching::bw_matching;
-    use std::error::Error;
     use crate::utils::DNA_BW;
+    use std::error::Error;
 
     #[test]
     fn test_bw_matching1() -> Result<(), Box<dyn Error>> {

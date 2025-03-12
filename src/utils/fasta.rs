@@ -41,13 +41,15 @@ impl Fasta {
     pub(crate) fn read_file(file: impl AsRef<Path>) -> Result<Vec<Self>, std::io::Error> {
         let content = read_to_string(file)?;
         let fasta_segments = content.split('>');
-        fasta_segments.into_iter().filter(|&f| !f.is_empty()).map(|fasta_content| {
-
-            Self::read(fasta_content.trim()).map_err(|_| {
-                std::io::Error::new(std::io::ErrorKind::InvalidData,
-                                    fasta_content.trim())
+        fasta_segments
+            .into_iter()
+            .filter(|&f| !f.is_empty())
+            .map(|fasta_content| {
+                Self::read(fasta_content.trim()).map_err(|_| {
+                    std::io::Error::new(std::io::ErrorKind::InvalidData, fasta_content.trim())
+                })
             })
-        }).collect::<Result<Vec<_>,std::io::Error>>()
+            .collect::<Result<Vec<_>, std::io::Error>>()
     }
 
     pub(crate) fn len(&self) -> usize {

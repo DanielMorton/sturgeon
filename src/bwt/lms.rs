@@ -15,7 +15,7 @@ pub(crate) fn build_type_map<T: Eq + Ord>(data: &[T]) -> Result<Vec<u8>, Box<dyn
         let mut type_map = vec![0; n + 1];
         type_map[n] = S;
         type_map[n - 1] = L;
-        for i in (0..=n - 2).rev() {
+        for i in (0..n - 1).rev() {
             type_map[i] = match data[i].cmp(&data[i + 1]) {
                 Ordering::Less => S,
                 Ordering::Equal => type_map[i + 1],
@@ -37,45 +37,39 @@ pub(crate) fn is_lms_char(type_map: &[u8], offset: usize) -> Result<bool, Box<dy
 pub(crate) fn lms_substrings_are_equal<T: PartialEq>(
     text_bytes: &[T],
     type_map: &[u8],
-    offset_a: usize,
-    offset_b: usize,
+    start_a: usize,
+    start_b: usize,
 ) -> Result<bool, Box<dyn Error>> {
+
     let n = text_bytes.len();
-    if offset_a == n || offset_b == n {
-        return Ok(false);
+    if start_a == n || start_b == n {
+        return Ok(false); // Out of bounds
     }
 
-    let mut i = 0;
-    loop {
-        // Avoid bounds checking in hot loop by pre-calculating max positions
-        let pos_a = offset_a + i;
-        let pos_b = offset_b + i;
+    let is_out_of_bounds = |pos| pos >= n;
+    let positions_are_equal = |pos_a, pos_b| text_bytes[pos_a] == text_bytes[pos_b];
 
-        // Protect against out-of-bounds access
-        if pos_a >= n || pos_b >= n {
+    let mut relative_index = 0;
+    loop {
+        let pos_a = start_a + relative_index;
+        let pos_b = start_b + relative_index;
+
+        if is_out_of_bounds(pos_a) || is_out_of_bounds(pos_b) {
             return Ok(false);
         }
 
         let a_is_lms = is_lms_char(type_map, pos_a)?;
         let b_is_lms = is_lms_char(type_map, pos_b)?;
 
-        // If we've found the start of the next LMS substrings...
-        if i > 0 && a_is_lms && b_is_lms {
-            // We made it through original LMS substrings without difference
-            return Ok(true);
+        if relative_index > 0 && a_is_lms && b_is_lms {
+            return Ok(true); // Both LMS substrings are equal
         }
 
-        if a_is_lms != b_is_lms {
-            // End of one LMS substring before the other
-            return Ok(false);
+        if a_is_lms != b_is_lms || !positions_are_equal(pos_a, pos_b) {
+            return Ok(false); // LMS mismatch or character difference
         }
 
-        if text_bytes[pos_a] != text_bytes[pos_b] {
-            // Character difference found
-            return Ok(false);
-        }
-
-        i += 1;
+        relative_index += 1;
     }
 }
 

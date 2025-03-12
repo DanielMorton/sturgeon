@@ -76,59 +76,58 @@ pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> 
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
 ) -> Result<Vec<usize>, Box<dyn Error>> {
-    let type_map = build_type_map(text_bytes)?;
+    // Step 1: Prepare necessary data structures
+    let labels = build_type_map(text_bytes)?; // Renamed `type_map` to `labels`
+    let buckets = char_buckets(text_bytes, char_map)?; // Renamed `bucket_sizes` to `buckets`
 
-    let bucket_sizes = char_buckets(text_bytes, char_map)?;
-    let mut guessed_suffix_array = guess_lms_sort(text_bytes, char_map, &bucket_sizes, &type_map)?;
+    // Step 2: Perform the initial LMS sorting
+    let mut guessed_suffix_array = guess_lms_sort(text_bytes, char_map, &buckets, &labels)?;
+
+    // Step 3: Induce sorting in both L and S directions
     induce_sort_l(
         &mut guessed_suffix_array,
         text_bytes,
         char_map,
-        &bucket_sizes,
-        &type_map,
+        &buckets,
+        &labels,
     )?;
     induce_sort_s(
         &mut guessed_suffix_array,
         text_bytes,
         char_map,
-        &bucket_sizes,
-        &type_map,
+        &buckets,
+        &labels,
     )?;
+
+    // Flatten and collect the guessed suffix array
     let guessed_suffix_array = guessed_suffix_array
         .into_iter()
         .flatten()
         .collect::<Vec<_>>();
 
-    let (summary_string, summary_alphabet_size, summary_suffix_offsets) =
-        summarize_suffix_array(text_bytes, &guessed_suffix_array, &type_map)?;
+    // Step 4: Summarize the guessed suffix array
+    let (summary_string, alphabet_size, offsets) =
+        summarize_suffix_array(text_bytes, &guessed_suffix_array, &labels)?;
 
-    let summary_suffix_array = make_summary_suffix_array(&summary_string, summary_alphabet_size)?;
+    // Step 5: Build the summary suffix array
+    let summary_suffix_array = make_summary_suffix_array(&summary_string, alphabet_size)?;
 
+    // Step 6: Perform accurate LMS sorting
     let mut suffix_array = accurate_lms_sort(
         text_bytes,
         char_map,
-        &bucket_sizes,
+        &buckets,
         &summary_suffix_array,
-        &summary_suffix_offsets,
-    )?;
-    induce_sort_l(
-        &mut suffix_array,
-        text_bytes,
-        char_map,
-        &bucket_sizes,
-        &type_map,
-    )?;
-    induce_sort_s(
-        &mut suffix_array,
-        text_bytes,
-        char_map,
-        &bucket_sizes,
-        &type_map,
+        &offsets,
     )?;
 
+    // Step 7: Refine the suffix array with induced sorting
+    induce_sort_l(&mut suffix_array, text_bytes, char_map, &buckets, &labels)?;
+    induce_sort_s(&mut suffix_array, text_bytes, char_map, &buckets, &labels)?;
+
+    // Final result: Flatten and return the suffix array
     Ok(suffix_array.into_iter().flatten().collect::<Vec<_>>())
 }
-
 pub(crate) fn make_summary_suffix_array(
     summary_string: &[usize],
     summary_alphabet_size: usize,

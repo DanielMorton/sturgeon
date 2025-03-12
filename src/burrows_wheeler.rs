@@ -1,7 +1,7 @@
-use std::collections::HashSet;
 use crate::bwt::fasta_burrows_wheeler_transform_sa_is;
 use crate::utils::{print_hms, Fasta, DNA_BYTES, DNA_BYTES_N};
 use clap::Parser;
+use std::collections::HashSet;
 use std::error::Error;
 use std::fs;
 use std::time::Instant;

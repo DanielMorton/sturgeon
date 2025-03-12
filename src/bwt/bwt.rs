@@ -7,7 +7,10 @@ use std::hash::Hash;
 
 const DOLLAR_SIGN: u8 = b'$';
 
-pub(crate) fn char_counts(bwt_bytes: &[u8], char_map: &HashMap<u8, usize>) -> Result<Vec<usize>, Box<dyn Error>> {
+pub(crate) fn char_counts(
+    bwt_bytes: &[u8],
+    char_map: &HashMap<u8, usize>,
+) -> Result<Vec<usize>, Box<dyn Error>> {
     let mut char_counts = vec![0; char_map.len()];
     for b in bwt_bytes {
         char_counts[*char_map.get(b).unwrap()] += 1;
@@ -46,15 +49,17 @@ pub fn burrows_wheeler_transform_sa_is(
     let suffixes = suffix_array_induced_sorting(text_bytes, char_map)?;
     let n = text.len();
 
+    let get_bwt_character = |suffix_index: usize| {
+        if suffix_index == 0 {
+            DOLLAR_SIGN
+        } else {
+            text_bytes[(suffix_index + n - 1) % n]
+        }
+    };
+
     let bwt = suffixes
         .iter()
-        .map(|&s| {
-            if s == 0 {
-                b'$'
-            } else {
-                text_bytes[(s + n - 1) % n]
-            }
-        })
+        .map(|&s| get_bwt_character(s))
         .collect::<Vec<_>>();
     Ok(String::from_utf8(bwt)?)
 }
@@ -78,8 +83,27 @@ fn calculate_start_positions(counts: &[usize]) -> Result<Vec<usize>, Box<dyn Err
         .collect())
 }
 
+// Helper function for calculating LF-mapping occurrences
+fn calculate_char_occurrences(
+    bwt_bytes: &[u8],
+    char_map: &HashMap<u8, usize>,
+) -> Result<Vec<usize>, Box<dyn Error>> {
+    let mut accumulated_occurrences = vec![0; char_map.len()];
+    Ok(bwt_bytes
+        .iter()
+        .map(|c| {
+            let pos = *char_map.get(c).unwrap();
+            let occ = accumulated_occurrences[pos];
+            accumulated_occurrences[pos] += 1;
+            occ
+        })
+        .collect::<Vec<_>>())
+}
 
-pub fn inverse_burrows_wheeler_transform(bwt: &str, char_map: &HashMap<u8, usize>) -> Result<String, Box<dyn Error>> {
+pub fn inverse_burrows_wheeler_transform(
+    bwt: &str,
+    char_map: &HashMap<u8, usize>,
+) -> Result<String, Box<dyn Error>> {
     let n = bwt.len();
     let bwt_bytes = bwt.as_bytes();
     if n <= 1 {
@@ -94,16 +118,7 @@ pub fn inverse_burrows_wheeler_transform(bwt: &str, char_map: &HashMap<u8, usize
 
     // Create smaller count array for LF-mapping
 
-    let mut char_counts_so_far = vec![0; char_map.len()];
-    let char_occ = bwt_bytes
-        .iter()
-        .map(|c| {
-            let pos = *char_map.get(c).unwrap();
-            let occ = char_counts_so_far[pos];
-            char_counts_so_far[pos] += 1;
-            occ
-        })
-        .collect::<Vec<_>>();
+    let char_occ = calculate_char_occurrences(bwt_bytes, char_map)?;
 
     // Find the dollar sign position
     let mut idx = bwt_bytes
@@ -131,8 +146,8 @@ pub fn inverse_burrows_wheeler_transform(bwt: &str, char_map: &HashMap<u8, usize
 #[cfg(test)]
 mod tests {
     use crate::bwt::bwt::{burrows_wheeler_transform, inverse_burrows_wheeler_transform};
-    use std::error::Error;
     use crate::utils::DNA_BW;
+    use std::error::Error;
 
     #[test]
     fn test_burrows_wheeler_transform1() -> Result<(), Box<dyn Error>> {
@@ -172,7 +187,10 @@ mod tests {
 
     #[test]
     fn test_inverse_burrows_wheeler_transform2() -> Result<(), Box<dyn Error>> {
-        assert_eq!(inverse_burrows_wheeler_transform("T$ACG", &DNA_BW)?, "ACGT$");
+        assert_eq!(
+            inverse_burrows_wheeler_transform("T$ACG", &DNA_BW)?,
+            "ACGT$"
+        );
         Ok(())
     }
 
@@ -187,7 +205,10 @@ mod tests {
 
     #[test]
     fn test_inverse_burrows_wheeler_transform4() -> Result<(), Box<dyn Error>> {
-        assert_eq!(inverse_burrows_wheeler_transform("TGCG$AA", &DNA_BW)?, "GAGCAT$");
+        assert_eq!(
+            inverse_burrows_wheeler_transform("TGCG$AA", &DNA_BW)?,
+            "GAGCAT$"
+        );
         Ok(())
     }
 }
