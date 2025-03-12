@@ -16,12 +16,12 @@ pub(crate) fn char_buckets<T: Eq + Hash>(
 }
 
 pub(crate) fn find_bucket_tails(bucket_sizes: &[usize]) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut offset = 1;
+    let mut offset = 0;
     Ok(bucket_sizes
         .iter()
         .map(|&s| {
             offset += s;
-            offset - 1
+            offset
         })
         .collect::<Vec<_>>())
 }

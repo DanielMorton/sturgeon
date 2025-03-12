@@ -1,10 +1,12 @@
-use crate::bwt::bwt::{char_counts, COUNTS};
+use std::collections::HashMap;
+use crate::bwt::bwt::{char_counts};
 use std::error::Error;
 
 fn bwt_match_count(
-    first_col_starts: &[usize; COUNTS],
-    occ: &[[usize; COUNTS]],
-    counts: &[usize; COUNTS],
+    first_col_starts: &[usize],
+    occ: &[Vec<usize>],
+    counts: &[usize],
+    char_map: &HashMap<u8, usize>,
     pattern: &str,
 ) -> Result<usize, Box<dyn Error>> {
     let pattern_bytes = pattern.as_bytes();
@@ -15,7 +17,7 @@ fn bwt_match_count(
 
     // Match pattern from end to beginning
     for i in (0..p_len).rev() {
-        let symbol = pattern_bytes[i] as usize;
+        let symbol = *char_map.get(&pattern_bytes[i]).unwrap();
 
         // Skip symbols not in the text
         if counts[symbol] == 0 {
@@ -34,46 +36,55 @@ fn bwt_match_count(
     Ok(bottom - top + 1)
 }
 
+fn get_first_col_starts(counts: &[usize]) -> Result<Vec<usize>, Box<dyn Error>> {
+    let mut total = 0;
+    Ok(counts.iter().map(|&c| {
+        let fcs = total;
+        total += c;
+        fcs
+    }).collect::<Vec<_>>())
+}
+
+fn calculate_occurrences(
+    bwt_bytes: &[u8],
+    char_map: &HashMap<u8, usize>,
+) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+    let length = bwt_bytes.len();
+    let char_count = char_map.len(); // Number of distinct characters
+    let mut occurrences = vec![vec![0; char_count]; length + 1];
+
+    for (i, &byte) in bwt_bytes.iter().enumerate() {
+        if i > 0 {
+            let occ = occurrences[i].clone();
+            occurrences[i + 1].copy_from_slice(&occ);
+        }
+        // Update the count for the current byte
+        if let Some(&idx) = char_map.get(&byte) {
+            occurrences[i + 1][idx] += 1;
+        }
+    }
+
+    Ok(occurrences)
+}
+
+
 // More optimized implementation using arrays instead of HashMaps for better performance
-fn bw_matching(bwt: &str, patterns: &[&str]) -> Result<Vec<usize>, Box<dyn Error>> {
+fn bw_matching(bwt: &str, patterns: &[&str], char_map: &HashMap<u8, usize>) -> Result<Vec<usize>, Box<dyn Error>> {
     let bwt_bytes = bwt.as_bytes();
-    let n = bwt_bytes.len();
 
     // Count character occurrences
-    let counts = char_counts(bwt_bytes)?;
+    let counts = char_counts(bwt_bytes, char_map)?;
 
     // Calculate starting positions in first column
-    let mut first_col_starts = [0; COUNTS];
-    let mut total = 0;
-    for i in 0..COUNTS {
-        if counts[i] > 0 {
-            first_col_starts[i] = total;
-            total += counts[i];
-        }
-    }
-    println!(
-        "{} {} {} {}",
-        first_col_starts[b'A' as usize],
-        first_col_starts[b'C' as usize],
-        first_col_starts[b'G' as usize],
-        first_col_starts[b'T' as usize]
-    );
+    let first_col_starts = get_first_col_starts(&counts)?;
 
     // Build the occurrence array more efficiently
-    let mut occ = vec![[0; COUNTS]; n + 1];
-    for i in 0..n {
-        if i > 0 {
-            for j in 0..COUNTS {
-                occ[i + 1][j] = occ[i][j];
-            }
-        }
-        occ[i + 1][bwt_bytes[i] as usize] += 1;
-    }
+    let occ = calculate_occurrences(bwt_bytes, char_map)?;
 
     // Match each pattern
     let results = patterns
         .iter()
-        .map(|&pattern| bwt_match_count(&first_col_starts, &occ, &counts, pattern))
+        .map(|&pattern| bwt_match_count(&first_col_starts, &occ, &counts, char_map, pattern))
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
 
     Ok(results)
@@ -83,13 +94,15 @@ fn bw_matching(bwt: &str, patterns: &[&str]) -> Result<Vec<usize>, Box<dyn Error
 mod tests {
     use crate::bwt::matching::bw_matching;
     use std::error::Error;
+    use crate::utils::DNA_BW;
 
     #[test]
     fn test_bw_matching1() -> Result<(), Box<dyn Error>> {
         assert_eq!(
             bw_matching(
                 "TCCTCTATGAGATCCTATTCTATGAAACCTTCA$GACCAAAATTCTCCGGC",
-                &vec!["CCT", "CAC", "GAG", "CAG", "ATC"]
+                &vec!["CCT", "CAC", "GAG", "CAG", "ATC"],
+                &DNA_BW
             )?,
             vec![2, 1, 1, 0, 1]
         );
