@@ -1,7 +1,9 @@
-use crate::bwt::{fasta_burrows_wheeler_transform, fasta_burrows_wheeler_transform_sa_is};
-use crate::utils::{print_hms, Fasta, DNA_BYTES};
+use std::collections::HashSet;
+use crate::bwt::fasta_burrows_wheeler_transform_sa_is;
+use crate::utils::{print_hms, Fasta, DNA_BYTES, DNA_BYTES_N};
 use clap::Parser;
 use std::error::Error;
+use std::fs;
 use std::time::Instant;
 
 #[derive(Parser)]
@@ -20,19 +22,13 @@ impl BWTArgs {
 pub fn run_bwt(args: BWTArgs) -> Result<(), Box<dyn Error>> {
     let input_file = args.get_input()?;
     let fasta = Fasta::read_file(&input_file)?;
-    let start = Instant::now();
-    let bwt = fasta_burrows_wheeler_transform(&fasta)?;
-    print_hms(&start);
 
+    println!("{}", fasta.iter().map(|f| f.text.len()).max().unwrap());
     let start = Instant::now();
-    let bwt_sa_is = fasta_burrows_wheeler_transform_sa_is(&fasta, &DNA_BYTES)?;
+    let bwt = fasta_burrows_wheeler_transform_sa_is(&fasta[0], &DNA_BYTES_N)?;
     print_hms(&start);
-    println!("{} {}", bwt.len(), bwt_sa_is.len());
-    println!("{}", &bwt[..10]);
-    println!("{}", &bwt_sa_is[..10]);
-    println!("{}", bwt == bwt_sa_is);
 
     let output_file = format!("{}_bwt.txt", input_file.split('.').next().unwrap());
-    //fs::write(output_file, bwt).expect("Unable to write file");
+    fs::write(output_file, bwt).expect("Unable to write file");
     Ok(())
 }

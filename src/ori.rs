@@ -52,7 +52,7 @@ impl OriArgs {
 
 pub fn run_ori(args: OriArgs) -> Result<(), Box<dyn Error>> {
     let input_file = args.get_input()?;
-    let fasta = Fasta::read_file(input_file)?;
+    let fasta = Fasta::read_file_component(input_file)?;
 
     let min_skew = minimum_skew(&fasta.text)?;
 

@@ -31,11 +31,23 @@ impl Fasta {
         Ok(Self::new(title, code))
     }
 
-    pub(crate) fn read_file(file: impl AsRef<Path>) -> Result<Self, std::io::Error> {
+    pub(crate) fn read_file_component(file: impl AsRef<Path>) -> Result<Self, std::io::Error> {
         let content = read_to_string(file)?;
         Self::read(content.trim()).map_err(|_| {
             std::io::Error::new(std::io::ErrorKind::InvalidData, "Invalid FASTA format")
         })
+    }
+
+    pub(crate) fn read_file(file: impl AsRef<Path>) -> Result<Vec<Self>, std::io::Error> {
+        let content = read_to_string(file)?;
+        let fasta_segments = content.split('>');
+        fasta_segments.into_iter().filter(|&f| !f.is_empty()).map(|fasta_content| {
+
+            Self::read(fasta_content.trim()).map_err(|_| {
+                std::io::Error::new(std::io::ErrorKind::InvalidData,
+                                    fasta_content.trim())
+            })
+        }).collect::<Result<Vec<_>,std::io::Error>>()
     }
 
     pub(crate) fn len(&self) -> usize {

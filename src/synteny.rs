@@ -20,7 +20,7 @@ pub struct SyntenyArgs {
 }
 pub fn run_synteny(args: SyntenyArgs) -> Result<(), Box<dyn Error>> {
     let dna1 = fs::read_to_string(args.file1)?;
-    let dna2 = Fasta::read_file(args.file2)?;
+    let dna2 = Fasta::read_file_component(args.file2)?;
     println!("E. coli Length {}", dna1.len());
     println!("S. enterica length {}", dna2.len());
     let start = Instant::now();
