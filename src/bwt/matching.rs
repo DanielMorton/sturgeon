@@ -123,7 +123,7 @@ pub fn bw_matching(
 #[cfg(test)]
 mod tests {
     use std::collections::HashMap;
-    use crate::bwt::matching::{bw_matching, calculate_fm_index};
+    use crate::bwt::matching::bw_matching;
     use crate::utils::DNA_BW;
     use std::error::Error;
     use crate::bwt::bwt::burrows_wheeler_transform_sa_is;
@@ -150,7 +150,7 @@ mod tests {
             bw_matching(
                 &bwt,
                 &vec!["ATCG", "GGGT"],
-                &DNA_BW)?,
+                &DNA_BW, 1)?,
             vec![2, 2]
         );
         Ok(())
@@ -165,7 +165,7 @@ mod tests {
             bw_matching(
                 &bwt,
                 &vec!["GT", "AGCT", "TAA", "AAT", "AATAT"],
-                &DNA_BW)?,
+                &DNA_BW, 1)?,
             vec![0; 5]
         );
         Ok(())
