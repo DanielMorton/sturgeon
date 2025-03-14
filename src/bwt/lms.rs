@@ -40,7 +40,6 @@ pub(crate) fn lms_substrings_are_equal<T: PartialEq>(
     start_a: usize,
     start_b: usize,
 ) -> Result<bool, Box<dyn Error>> {
-
     let n = text_bytes.len();
     if start_a == n || start_b == n {
         return Ok(false); // Out of bounds
