@@ -9,11 +9,17 @@ fn bwt_match_count(
     char_map: &HashMap<u8, usize>,
     pattern: &str,
 ) -> Result<usize, Box<dyn Error>> {
+    println!("{}", pattern);
     let pattern_bytes = pattern.as_bytes();
     let p_len = pattern_bytes.len();
 
     let mut top = 0;
     let mut bottom = occ.len() - 2;
+
+    println!("First Col Starts {:?}", first_col_starts);
+    println!("Counts {:?}", counts);
+
+    println!("{:?}", occ);
 
     // Match pattern from end to beginning
     for i in (0..p_len).rev() {
@@ -126,7 +132,7 @@ mod tests {
                 &bwt,
                 &vec!["ATCG", "GGGT"],
                 &DNA_BW)?,
-            vec![2, 2]
+            vec![2, 2, 1]
         );
         Ok(())
     }
