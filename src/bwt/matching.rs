@@ -31,7 +31,11 @@ fn bwt_match_count(
         }
 
         // Update range
-        top = first_col_starts[symbol] + fm_index[top][symbol] - 1;
+        if i == p_len - 1 {
+            top = first_col_starts[symbol];
+        } else {
+            top = first_col_starts[symbol] + fm_index[top - 1][symbol];
+        }
         bottom = first_col_starts[symbol] + fm_index[bottom][symbol] - 1;
         println!("TB {} {}", top, bottom);;
 
@@ -40,7 +44,7 @@ fn bwt_match_count(
         }
     }
 
-    Ok(bottom - top)
+    Ok(bottom - top + 1)
 }
 
 fn get_first_col_starts(counts: &[usize]) -> Result<Vec<usize>, Box<dyn Error>> {
