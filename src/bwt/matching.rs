@@ -101,6 +101,7 @@ mod tests {
     use crate::bwt::matching::bw_matching;
     use crate::utils::DNA_BW;
     use std::error::Error;
+    use crate::bwt::bwt::burrows_wheeler_transform_sa_is;
 
     #[test]
     fn test_bw_matching1() -> Result<(), Box<dyn Error>> {
@@ -111,6 +112,21 @@ mod tests {
                 &DNA_BW
             )?,
             vec![2, 1, 1, 0, 1]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_bw_matching2() -> Result<(), Box<dyn Error>> {
+        let text = "AATCGGGTTCAATCGGGGT";
+        let bwt = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        println!("{}", bwt);
+        assert_eq!(
+            bw_matching(
+                &bwt,
+                &vec!["ATCG", "GGGT"],
+                &DNA_BW)?,
+            vec![2, 2]
         );
         Ok(())
     }
