@@ -5,7 +5,7 @@ use std::error::Error;
 
 fn bwt_match_count(
     first_col_starts: &[usize],
-    fw_index: &[Vec<usize>],
+    fm_index: &[Vec<usize>],
     counts: &[usize],
     char_map: &HashMap<u8, usize>,
     pattern: &str,
@@ -15,8 +15,12 @@ fn bwt_match_count(
     let p_len = pattern_bytes.len();
 
     let mut top = 0;
-    let mut bottom = fw_index.len() - 1;
+    let mut bottom = fm_index.len() - 1;
 
+    println!("First Col Starts {:?}", first_col_starts);
+    println!("Counts {:?}", counts);
+
+    println!("{:?}", fm_index);
     // Match pattern from end to beginning
     for i in (0..p_len).rev() {
         let symbol = *char_map.get(&pattern_bytes[i]).unwrap();
@@ -26,11 +30,9 @@ fn bwt_match_count(
             return Ok(0);
         }
 
-        println!("First Col {}", first_col_starts[symbol]);
-        println!("FW Index {} {}", fw_index[top][symbol], fw_index[bottom][symbol]);;
         // Update range
-        top = first_col_starts[symbol] + fw_index[top][symbol] - 1;
-        bottom = first_col_starts[symbol] + fw_index[bottom][symbol] - 1;
+        top = first_col_starts[symbol] + fm_index[top][symbol] - 1;
+        bottom = first_col_starts[symbol] + fm_index[bottom][symbol] - 1;
         println!("TB {} {}", top, bottom);;
 
         if top > bottom {
