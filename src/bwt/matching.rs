@@ -132,7 +132,22 @@ mod tests {
                 &bwt,
                 &vec!["ATCG", "GGGT"],
                 &DNA_BW)?,
-            vec![2, 2, 1]
+            vec![2, 2]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn test_bw_matching3() -> Result<(), Box<dyn Error>> {
+        let text = "ATATATATAT";
+        let bwt = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        println!("{}", bwt);
+        assert_eq!(
+            bw_matching(
+                &bwt,
+                &vec!["GT", "AGCT", "TAA", "AAT", "AATAT"],
+                &DNA_BW)?,
+            vec![0; 5]
         );
         Ok(())
     }
