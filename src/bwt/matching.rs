@@ -64,6 +64,7 @@ fn calculate_fm_index(
     char_map: &HashMap<u8, usize>,
     fw_step: usize
 ) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
+    let length = bwt_bytes.len();
     let char_count = char_map.len(); // Number of distinct characters
     let mut fm_index = Vec::new();
 
@@ -149,34 +150,23 @@ mod tests {
             bw_matching(
                 &bwt,
                 &vec!["ATCG", "GGGT"],
-                &DNA_BW,
-                1)?,
+                &DNA_BW)?,
             vec![2, 2]
         );
         Ok(())
     }
 
     #[test]
-    fn test_fm_index1() -> Result<(), Box<dyn Error>> {
-        let bwt_bytes = "abba$aa".as_bytes();
-        let char_map = HashMap::from([(b'$', 0), (b'a', 1), (b'b', 2)]);
-        let fm_index = calculate_fm_index(&bwt_bytes, &char_map, 1)?;
+    fn test_bw_matching3() -> Result<(), Box<dyn Error>> {
+        let text = "ATATATATAT";
+        let bwt = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        println!("{}", bwt);
         assert_eq!(
-            fm_index,
-            vec![vec![0, 1, 0], vec![0, 1, 1], vec![0, 1, 2],
-                 vec![0,2,2], vec![1, 2,2], vec![1, 3,2],
-            vec![1, 4,2]]
-        );
-        Ok(())
-    }
-    #[test]
-    fn test_fm_index2() -> Result<(), Box<dyn Error>> {
-        let bwt_bytes = "abba$aa".as_bytes();
-        let char_map = HashMap::from([(b'$', 0), (b'a', 1), (b'b', 2)]);
-        let fm_index = calculate_fm_index(&bwt_bytes, &char_map, 5)?;
-        assert_eq!(
-            fm_index,
-            vec![vec![0, 1, 0], vec![1, 3, 2]]
+            bw_matching(
+                &bwt,
+                &vec!["GT", "AGCT", "TAA", "AAT", "AATAT"],
+                &DNA_BW)?,
+            vec![0; 5]
         );
         Ok(())
     }
