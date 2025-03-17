@@ -1,104 +1,73 @@
-use crate::bwt::bwt::char_counts;
-use crate::utils::Fasta;
+use crate::bwt::counts::{char_counts, get_first_col_starts};
+use crate::bwt::fm::calculate_fm_index;
 use std::collections::HashMap;
 use std::error::Error;
 
-fn bwt_match_count(
+pub(crate) fn bw_matching(
     first_col_starts: &[usize],
     fm_index: &[Vec<usize>],
     counts: &[usize],
     char_map: &HashMap<u8, usize>,
     pattern: &str,
-) -> Result<usize, Box<dyn Error>> {
-    println!("{}", pattern);
+) -> Result<Option<(usize, usize)>, Box<dyn Error>> {
     let pattern_bytes = pattern.as_bytes();
-    let p_len = pattern_bytes.len();
+    let pattern_len = pattern_bytes.len();
 
     let mut top = 0;
     let mut bottom = fm_index.len() - 1;
 
-    println!("First Col Starts {:?}", first_col_starts);
-    println!("Counts {:?}", counts);
-
-    println!("{:?}", fm_index);
-    // Match pattern from end to beginning
-    for i in (0..p_len).rev() {
-        let symbol = *char_map.get(&pattern_bytes[i]).unwrap();
-
-        // Skip symbols not in the text
-        if counts[symbol] == 0 {
-            return Ok(0);
-        }
-
-        // Update range
-        if i == p_len - 1 {
-            top = first_col_starts[symbol];
+    // Helper function to update the range
+    fn update_range(
+        symbol: usize,
+        top: usize,
+        bottom: usize,
+        first_col_starts: &[usize],
+        fm_index: &[Vec<usize>],
+        is_last_iter: bool,
+    ) -> (usize, usize) {
+        let new_top = if is_last_iter {
+            first_col_starts[symbol]
         } else {
-            top = first_col_starts[symbol] + fm_index[top - 1][symbol];
+            first_col_starts[symbol] + fm_index[top - 1][symbol]
+        };
+        let new_bottom = first_col_starts[symbol] + fm_index[bottom][symbol] - 1;
+        (new_top, new_bottom)
+    }
+
+    // Match pattern from end to beginning
+    for (i, &byte) in pattern_bytes.iter().enumerate().rev() {
+        let symbol = *char_map
+            .get(&byte)
+            .ok_or(format!("Symbol {} not found in char_map", byte.to_string()))?;
+
+        if counts[symbol] == 0 {
+            return Ok(None);
         }
-        bottom = first_col_starts[symbol] + fm_index[bottom][symbol] - 1;
-        println!("TB {} {}", top, bottom);;
+
+        let is_last_iter = i == pattern_len - 1;
+        (top, bottom) = update_range(
+            symbol,
+            top,
+            bottom,
+            first_col_starts,
+            fm_index,
+            is_last_iter,
+        );
 
         if top > bottom {
-            return Ok(0);
+            return Ok(None);
         }
     }
-
-    Ok(bottom - top + 1)
+    Ok(Some((top, bottom)))
 }
 
-fn get_first_col_starts(counts: &[usize]) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut total = 0;
-    Ok(counts
-        .iter()
-        .map(|&c| {
-            let fcs = total;
-            total += c;
-            fcs
-        })
-        .collect::<Vec<_>>())
-}
-
-fn calculate_fm_index(
-    bwt_bytes: &[u8],
-    char_map: &HashMap<u8, usize>,
-    fw_step: usize
-) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
-    let length = bwt_bytes.len();
-    let char_count = char_map.len(); // Number of distinct characters
-    let mut fm_index = Vec::new();
-
-    let mut fw_row = vec![0; char_count];
-    for (i, &byte) in bwt_bytes.iter().enumerate() {
-        if let Some(&idx) = char_map.get(&byte) {
-            fw_row[idx] += 1;
-        }
-
-        if i % fw_step == 0 {
-            fm_index.push(fw_row.clone());
-        }
-    }
-
-    Ok(fm_index)
-}
-
-pub fn bw_matching_fasta(
+pub fn bw_match_positions(
     bwt: &str,
-    patterns: &[Fasta],
-    char_map: &HashMap<u8, usize>,
-    fw_step: usize
-) -> Result<Vec<usize>, Box<dyn Error>> {
-    let pattern_strings = patterns.iter().map(|f| f.text.as_str()).collect::<Vec<_>>();
-    bw_matching(bwt, &pattern_strings, char_map, fw_step)
-}
-
-// More optimized implementation using arrays instead of HashMaps for better performance
-pub fn bw_matching(
-    bwt: &str,
+    suffixes: &[usize],
     patterns: &[&str],
     char_map: &HashMap<u8, usize>,
-    fw_step: usize
-) -> Result<Vec<usize>, Box<dyn Error>> {
+    fw_step: usize,
+) -> Result<Vec<Vec<usize>>, Box<dyn Error>> {
     let bwt_bytes = bwt.as_bytes();
 
     // Count character occurrences
@@ -109,65 +78,94 @@ pub fn bw_matching(
 
     // Build the occurrence array more efficiently
     let fm_index = calculate_fm_index(bwt_bytes, char_map, fw_step)?;
-    println!("{:?}", fm_index);
 
     // Match each pattern
     let results = patterns
         .iter()
-        .map(|&pattern| bwt_match_count(&first_col_starts, &fm_index, &counts, char_map, pattern))
+        .map(|&pattern| {
+            bw_match_position(
+                &first_col_starts,
+                suffixes,
+                &fm_index,
+                &counts,
+                char_map,
+                pattern,
+            )
+        })
         .collect::<Result<Vec<_>, Box<dyn Error>>>()?;
 
     Ok(results)
 }
 
+pub fn bw_match_position(
+    first_col_starts: &[usize],
+    suffixes: &[usize],
+    fm_index: &[Vec<usize>],
+    counts: &[usize],
+    char_map: &HashMap<u8, usize>,
+    pattern: &str,
+) -> Result<Vec<usize>, Box<dyn Error>> {
+    Ok(
+        if let Some((top, bottom)) =
+            bw_matching(first_col_starts, fm_index, counts, char_map, pattern)?
+        {
+            let mut starts = suffixes[top..=bottom].to_vec();
+            starts.sort();
+            starts
+        } else {
+            Vec::new()
+        },
+    )
+}
+
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-    use crate::bwt::matching::bw_matching;
-    use crate::utils::DNA_BW;
-    use std::error::Error;
     use crate::bwt::bwt::burrows_wheeler_transform_sa_is;
+    use crate::bwt::matching::bw_match_positions;
+    use crate::utils::DNA_BW;
+    use std::collections::HashMap;
+    use std::error::Error;
 
     #[test]
-    fn test_bw_matching1() -> Result<(), Box<dyn Error>> {
-        assert_eq!(
-            bw_matching(
-                "TCCTCTATGAGATCCTATTCTATGAAACCTTCA$GACCAAAATTCTCCGGC",
-                &vec!["CCT", "CAC", "GAG", "CAG", "ATC"],
-                &DNA_BW,
-            1)?,
-            vec![2, 1, 1, 0, 1]
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn test_bw_matching2() -> Result<(), Box<dyn Error>> {
+    fn test_bw_match_position1() -> Result<(), Box<dyn Error>> {
         let text = "AATCGGGTTCAATCGGGGT";
-        let bwt = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
-        println!("{}", bwt);
-        assert_eq!(
-            bw_matching(
-                &bwt,
-                &vec!["ATCG", "GGGT"],
-                &DNA_BW, 1)?,
-            vec![2, 2]
-        );
+        let (bwt, sa) = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        let matches = bw_match_positions(&bwt, &sa, &["ATCG", "GGGT"], &DNA_BW, 1)?;
+        assert_eq!(matches, vec![vec![1, 11], vec![4, 15]]);
         Ok(())
     }
 
     #[test]
-    fn test_bw_matching3() -> Result<(), Box<dyn Error>> {
+    fn test_bw_match_position2() -> Result<(), Box<dyn Error>> {
         let text = "ATATATATAT";
-        let bwt = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
-        println!("{}", bwt);
-        assert_eq!(
-            bw_matching(
-                &bwt,
-                &vec!["GT", "AGCT", "TAA", "AAT", "AATAT"],
-                &DNA_BW, 1)?,
-            vec![0; 5]
-        );
+        let (bwt, sa) = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        let matches = bw_match_positions(
+            &bwt,
+            &sa,
+            &["GT", "AGCT", "TAA", "AAT", "AATAT"],
+            &DNA_BW,
+            1,
+        )?;
+        assert_eq!(matches, vec![vec![], vec![], vec![], vec![], vec![]]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_bw_match_position3() -> Result<(), Box<dyn Error>> {
+        let text = "bananas";
+        let char_map = HashMap::from([(b'$', 0), (b'a', 1), (b'b', 2), (b'n', 3), (b's', 4)]);
+        let (bwt, sa) = burrows_wheeler_transform_sa_is(text, &char_map)?;
+        let matches = bw_match_positions(&bwt, &sa, &["ana", "as"], &char_map, 1)?;
+        assert_eq!(matches, vec![vec![1, 3], vec![5]]);
+        Ok(())
+    }
+
+    #[test]
+    fn test_bw_match_position4() -> Result<(), Box<dyn Error>> {
+        let text = "AAACAA";
+        let (bwt, sa) = burrows_wheeler_transform_sa_is(text, &DNA_BW)?;
+        let matches = bw_match_positions(&bwt, &sa, &["AA"], &DNA_BW, 1)?;
+        assert_eq!(matches, vec![vec![0, 1, 4]]);
         Ok(())
     }
 }

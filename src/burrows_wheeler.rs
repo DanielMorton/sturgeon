@@ -28,7 +28,7 @@ pub fn run_bwt(args: BWTArgs) -> Result<(), Box<dyn Error>> {
     print_hms(&start);
 
     let start = Instant::now();
-    let bwt_sa = fasta_burrows_wheeler_transform_sa_is(&fasta[0], &DNA_BYTES)?;
+    let (bwt_sa, _) = fasta_burrows_wheeler_transform_sa_is(&fasta[0], &DNA_BYTES)?;
     print_hms(&start);
 
     println!("{}", bwt == bwt_sa);

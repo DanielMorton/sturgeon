@@ -1,6 +1,6 @@
 use crate::burrows_wheeler::BWTArgs;
 use crate::bwt::{
-    bw_matching, bw_matching_fasta, fasta_burrows_wheeler_transform,
+    bw_match_counts, bw_match_counts_fasta, fasta_burrows_wheeler_transform,
     fasta_burrows_wheeler_transform_sa_is,
 };
 use crate::utils::{dna_complement, print_hms, Fasta, DNA_BW, DNA_BYTES};
@@ -39,11 +39,11 @@ pub fn run_bwt_matching(args: BWTMatchingArgs) -> Result<(), Box<dyn Error>> {
     let patterns = Fasta::read_file(&pattern_file)?;
 
     let start = Instant::now();
-    let bwt = fasta_burrows_wheeler_transform_sa_is(&fasta, &DNA_BYTES)?;
+    let (bwt, _) = fasta_burrows_wheeler_transform_sa_is(&fasta, &DNA_BYTES)?;
     print_hms(&start);
 
     let start = Instant::now();
-    let forward_matches = bw_matching_fasta(&bwt, &patterns, &DNA_BW, 1)?;
+    let forward_matches = bw_match_counts_fasta(&bwt, &patterns, &DNA_BW, 1)?;
     print_hms(&start);
 
     let reverse_patterns = patterns
@@ -56,7 +56,7 @@ pub fn run_bwt_matching(args: BWTMatchingArgs) -> Result<(), Box<dyn Error>> {
         .collect::<Vec<_>>();
 
     let start = Instant::now();
-    let reverse_matches = bw_matching(&bwt, &reverse_patterns, &DNA_BW, 1)?;
+    let reverse_matches = bw_match_counts(&bwt, &reverse_patterns, &DNA_BW, 1)?;
     print_hms(&start);
 
     let matches = forward_matches

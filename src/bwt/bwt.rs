@@ -1,3 +1,4 @@
+use crate::bwt::counts::char_counts;
 use crate::bwt::suffix_array::suffix_array_bytes;
 use crate::bwt::suffix_array_induced_sorting;
 use crate::utils::Fasta;
@@ -6,17 +7,6 @@ use std::error::Error;
 use std::hash::Hash;
 
 const DOLLAR_SIGN: u8 = b'$';
-
-pub(crate) fn char_counts(
-    bwt_bytes: &[u8],
-    char_map: &HashMap<u8, usize>,
-) -> Result<Vec<usize>, Box<dyn Error>> {
-    let mut char_counts = vec![0; char_map.len()];
-    for b in bwt_bytes {
-        char_counts[*char_map.get(b).unwrap()] += 1;
-    }
-    Ok(char_counts)
-}
 
 pub fn burrows_wheeler_transform(text: &str) -> Result<String, Box<dyn Error>> {
     let text_bytes = text.as_bytes();
@@ -44,7 +34,7 @@ pub fn fasta_burrows_wheeler_transform(fasta: &Fasta) -> Result<String, Box<dyn 
 pub fn burrows_wheeler_transform_sa_is(
     text: &str,
     char_map: &HashMap<u8, usize>,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<(String, Vec<usize>), Box<dyn Error>> {
     let text_bytes = text.as_bytes();
     let suffixes = suffix_array_induced_sorting(text_bytes, char_map)?;
     let n = text.len();
@@ -61,13 +51,13 @@ pub fn burrows_wheeler_transform_sa_is(
         .iter()
         .map(|&s| get_bwt_character(s))
         .collect::<Vec<_>>();
-    Ok(String::from_utf8(bwt)?)
+    Ok((String::from_utf8(bwt)?, suffixes))
 }
 
 pub fn fasta_burrows_wheeler_transform_sa_is(
     fasta: &Fasta,
     char_map: &HashMap<u8, usize>,
-) -> Result<String, Box<dyn Error>> {
+) -> Result<(String, Vec<usize>), Box<dyn Error>> {
     burrows_wheeler_transform_sa_is(&fasta.text, char_map)
 }
 
