@@ -2,6 +2,7 @@ use crate::bwt::bucket::{find_bucket_heads, find_bucket_tails};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::error::Error;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
 pub const L: u8 = b'L';
@@ -72,7 +73,7 @@ pub(crate) fn lms_substrings_are_equal<T: PartialEq>(
     }
 }
 
-pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
+pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash + Debug>(
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
     bucket_sizes: &[usize],
@@ -84,7 +85,9 @@ pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
     let mut bucket_tails = find_bucket_tails(bucket_sizes)?;
     for (i, byte) in text_bytes.iter().enumerate() {
         if is_lms_char(type_map, i)? {
-            let bucket_index = *char_map.get(byte).unwrap();
+
+            let bucket_index = *char_map.get(byte)
+                .ok_or_else(|| format!("Byte {:?} not in map", byte))?;
             guessed_suffix_array[bucket_tails[bucket_index]] = Some(i);
             bucket_tails[bucket_index] -= 1;
         }
@@ -94,7 +97,7 @@ pub(crate) fn guess_lms_sort<T: Copy + Eq + Hash>(
     Ok(guessed_suffix_array)
 }
 
-pub(crate) fn induce_sort_l<T: Copy + Eq + Hash>(
+pub(crate) fn induce_sort_l<T: Copy + Eq + Hash + Display>(
     guessed_suffix_array: &mut [Option<usize>],
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
@@ -118,7 +121,7 @@ pub(crate) fn induce_sort_l<T: Copy + Eq + Hash>(
             // Use direct array indexing with unwrap_or_else for better performance
             let bucket_index = *char_map
                 .get(&text_bytes[prev_pos])
-                .expect("Character should exist in char_map");
+                .expect(&format!("Character {} should exist in char_map", &text_bytes[prev_pos]));
 
             guessed_suffix_array[bucket_heads[bucket_index]] = Some(prev_pos);
             bucket_heads[bucket_index] += 1;

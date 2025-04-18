@@ -55,6 +55,10 @@ impl Fasta {
     pub(crate) fn len(&self) -> usize {
         self.text.len()
     }
+
+    pub(crate) fn upper(&self) -> Self {
+        Fasta::new(self.title.clone(), self.text.to_uppercase())
+    }
 }
 
 pub(crate) type Dna = Fasta;

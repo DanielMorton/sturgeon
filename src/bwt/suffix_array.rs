@@ -5,7 +5,7 @@ use crate::bwt::lms::{
 use crate::bwt::summary::summarize_suffix_array;
 use std::collections::{HashMap, HashSet};
 use std::error::Error;
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
 pub fn suffix_array(text: &str) -> Result<Vec<usize>, Box<dyn Error>> {
@@ -72,7 +72,7 @@ pub(crate) fn suffix_array_bytes(text_bytes: &[u8]) -> Result<Vec<usize>, Box<dy
     Ok(suffix)
 }
 
-pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> + Ord>(
+pub fn suffix_array_induced_sorting<T: Copy + Display + Eq + Hash + Into<usize> + Ord + Debug>(
     text_bytes: &[T],
     char_map: &HashMap<T, usize>,
 ) -> Result<Vec<usize>, Box<dyn Error>> {

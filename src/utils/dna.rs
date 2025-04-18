@@ -40,6 +40,24 @@ pub static DNA_BW: Lazy<HashMap<u8, usize>> = Lazy::new(|| {
     m
 });
 
+pub static DNA_BW_N: Lazy<HashMap<u8, usize>> = Lazy::new(|| {
+    let mut m = HashMap::new();
+    m.insert(b'$', 0);
+    m.insert(b'A', 1);
+    m.insert(b'B', 2);
+    m.insert(b'C', 3);
+    m.insert(b'G', 4);
+    m.insert(b'K', 5);
+    m.insert(b'M', 6);
+    m.insert(b'N', 7);
+    m.insert(b'R', 8);
+    m.insert(b'S', 9);
+    m.insert(b'T', 10);
+    m.insert(b'W', 11);
+    m.insert(b'Y', 12);
+    m
+});
+
 pub static DNA_BYTES_N: Lazy<HashMap<u8, usize>> = Lazy::new(|| {
     let mut m = HashMap::new();
     m.insert(b'A', 0);

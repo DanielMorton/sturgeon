@@ -21,7 +21,7 @@ fn count_peptides(target_mass: usize, aa_masses: &[usize]) -> Result<usize, Box<
 
     // If target mass is smaller than smallest amino acid mass
     if target_mass < min_mass {
-        return panic!("Target mass must be positive");
+        return Err("Target mass must be positive".into());
     }
 
     // dp[i] represents number of peptides with mass i
